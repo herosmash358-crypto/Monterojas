@@ -1,0 +1,362 @@
+// =============================================================================
+// Monterojas - Esquema de Base de Datos Prisma
+// Tienda de café colombiano de especialidad
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// Modelo: Usuario
+// =============================================================================
+
+/// Representa un usuario registrado en la plataforma
+model User {
+  id                String   @id @default(cuid())
+  name              String
+  email             String   @unique
+  password          String
+  image             String?
+  /// Rol: "USER" o "ADMIN" (String por compatibilidad con SQLite)
+  role              String   @default("USER")
+  /// Preferencias de sabor almacenadas como JSON string
+  flavorPreferences String?
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  // Relaciones
+  orders        Order[]
+  reviews       Review[]
+  addresses     Address[]
+  wishlistItems WishlistItem[]
+}
+
+// =============================================================================
+// Modelo: Categoría
+// =============================================================================
+
+/// Categoría de productos con soporte para jerarquía (padre/hijo)
+model Category {
+  id           String     @id @default(cuid())
+  name         String
+  slug         String     @unique
+  description  String?
+  image        String?
+  /// ID de la categoría padre para categorías anidadas
+  parentId     String?
+  displayOrder Int        @default(0)
+
+  // Relaciones
+  products Product[]
+  children Category[] @relation("CategoryHierarchy")
+  parent   Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+}
+
+// =============================================================================
+// Modelo: Producto
+// =============================================================================
+
+/// Producto de café con información detallada de origen y perfil de sabor
+model Product {
+  id               String   @id @default(cuid())
+  name             String
+  slug             String   @unique
+  sku              String   @unique
+  /// Descripción completa del producto
+  description      String
+  /// Descripción corta para listados y tarjetas
+  shortDescription String?
+  /// Región de origen (ej: Huila, Nariño)
+  origin           String?
+  /// Nombre de la finca productora
+  farm             String?
+  /// Altitud de cultivo en metros (ej: "1800 msnm")
+  altitude         String?
+  /// Variedad botánica del café (ej: Caturra, Castillo)
+  variety          String?
+  /// Proceso de beneficio: lavado, honey, natural
+  process          String?
+  /// Nivel de tueste: claro, medio, oscuro
+  roastLevel       String?
+  /// Notas de sabor almacenadas como JSON string array
+  flavorNotes      String?
+  /// Puntaje de catación SCA (0-100)
+  cuppingScore     Float?
+  /// Métodos de preparación recomendados como JSON string array
+  brewMethods      String?
+  /// Certificaciones como JSON string array
+  certifications   String?
+
+  // Perfil sensorial (escala 0-5)
+  acidity    Int @default(0)
+  body       Int @default(0)
+  sweetness  Int @default(0)
+  bitterness Int @default(0)
+
+  /// Relación con categoría
+  categoryId String?
+
+  // Banderas de visibilidad y marketing
+  featured   Boolean @default(false)
+  bestSeller Boolean @default(false)
+  isNew      Boolean @default(false)
+  active     Boolean @default(true)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relaciones
+  variants      ProductVariant[]
+  images        ProductImage[]
+  reviews       Review[]
+  category      Category?        @relation(fields: [categoryId], references: [id])
+  wishlistItems WishlistItem[]
+}
+
+// =============================================================================
+// Modelo: Variante de Producto
+// =============================================================================
+
+/// Variante específica de un producto (combinación de peso y molienda)
+model ProductVariant {
+  id           String @id @default(cuid())
+  productId    String
+  /// Peso en gramos: 250, 500, 1000
+  weight       Int
+  /// Tipo de molienda: entero, medio, fino, espresso, filtro, moka
+  grind        String
+  /// Precio en pesos colombianos (COP) como entero
+  price        Int
+  /// Precio de comparación para mostrar descuentos
+  comparePrice Int?
+  /// Unidades disponibles en inventario
+  stock        Int    @default(0)
+  /// SKU único para esta variante
+  sku          String @unique
+
+  // Relaciones
+  product    Product     @relation(fields: [productId], references: [id], onDelete: Cascade)
+  orderItems OrderItem[]
+}
+
+// =============================================================================
+// Modelo: Imagen de Producto
+// =============================================================================
+
+/// Imagen asociada a un producto con orden de visualización
+model ProductImage {
+  id           String  @id @default(cuid())
+  productId    String
+  url          String
+  alt          String?
+  /// Orden de visualización en la galería
+  displayOrder Int     @default(0)
+  /// Indica si es la imagen principal del producto
+  isPrimary    Boolean @default(false)
+
+  // Relaciones
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+// =============================================================================
+// Modelo: Reseña
+// =============================================================================
+
+/// Reseña de un producto por un usuario
+model Review {
+  id           String   @id @default(cuid())
+  productId    String
+  userId       String
+  /// Calificación de 1 a 5 estrellas
+  rating       Int
+  title        String?
+  content      String?
+  /// Método de preparación utilizado
+  brewMethod   String?
+  /// URL de foto adjunta a la reseña
+  photoUrl     String?
+  /// Si la compra fue verificada
+  isVerified   Boolean  @default(false)
+  /// Contador de votos "útil"
+  helpfulCount Int      @default(0)
+  /// Estado de moderación: approved, pending, rejected
+  status       String   @default("approved")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relaciones
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =============================================================================
+// Modelo: Pedido
+// =============================================================================
+
+/// Pedido realizado por un usuario o invitado
+model Order {
+  id             String   @id @default(cuid())
+  /// ID del usuario (nullable para compras como invitado)
+  userId         String?
+  /// Número de pedido legible (ej: "MR-20261027-A1B2")
+  orderNumber    String   @unique
+  /// Estado del pedido: pendiente, confirmado, enviado, entregado, cancelado
+  status         String   @default("pendiente")
+  /// Subtotal antes de envío y descuentos (COP)
+  subtotal       Int
+  /// Costo de envío (COP)
+  shipping       Int
+  /// Descuento aplicado (COP)
+  discount       Int      @default(0)
+  /// Total final del pedido (COP)
+  total          Int
+  /// Código de cupón utilizado
+  couponCode     String?
+  // Información de envío
+  shippingName    String
+  shippingEmail   String
+  shippingPhone   String
+  shippingAddress String
+  shippingCity    String
+  shippingState   String
+  shippingZip     String
+  /// Método de pago: tarjeta, PSE, nequi, contra_entrega
+  paymentMethod  String
+  /// Estado del pago: pendiente, aprobado, rechazado, reembolsado
+  paymentStatus  String   @default("pendiente")
+  /// Número de guía de envío
+  trackingNumber String?
+  /// Notas adicionales del cliente
+  notes          String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  // Relaciones
+  user  User?       @relation(fields: [userId], references: [id])
+  items OrderItem[]
+}
+
+// =============================================================================
+// Modelo: Ítem de Pedido
+// =============================================================================
+
+/// Línea individual dentro de un pedido
+model OrderItem {
+  id          String @id @default(cuid())
+  orderId     String
+  /// ID de la variante (referencia no relacional para preservar historial)
+  variantId   String
+  /// Nombre del producto al momento de la compra
+  productName String
+  /// Slug del producto para enlaces
+  productSlug String
+  /// Peso en gramos al momento de la compra
+  weight      Int
+  /// Molienda seleccionada al momento de la compra
+  grind       String
+  /// Cantidad de unidades
+  quantity    Int
+  /// Precio unitario al momento de la compra (COP)
+  unitPrice   Int
+
+  // Relaciones
+  order  Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  variant ProductVariant @relation(fields: [variantId], references: [id])
+}
+
+// =============================================================================
+// Modelo: Dirección
+// =============================================================================
+
+/// Dirección de envío guardada por un usuario
+model Address {
+  id        String   @id @default(cuid())
+  userId    String
+  /// Etiqueta descriptiva (ej: "Casa", "Oficina")
+  label     String
+  name      String
+  phone     String
+  street    String
+  city      String
+  state     String
+  zipCode   String
+  /// Si es la dirección predeterminada del usuario
+  isDefault Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// =============================================================================
+// Modelo: Ítem de Lista de Deseos
+// =============================================================================
+
+/// Producto guardado en la lista de deseos de un usuario
+model WishlistItem {
+  id        String   @id @default(cuid())
+  userId    String
+  productId String
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  /// Un usuario solo puede tener un producto una vez en su lista de deseos
+  @@unique([userId, productId])
+}
+
+// =============================================================================
+// Modelo: Cupón de Descuento
+// =============================================================================
+
+/// Cupón de descuento aplicable a pedidos
+model Coupon {
+  id        String    @id @default(cuid())
+  /// Código único del cupón (ej: "BIENVENIDO10")
+  code      String    @unique
+  /// Tipo de descuento: "percent" (porcentaje) o "fixed" (monto fijo)
+  type      String
+  /// Valor del descuento (porcentaje o monto en COP)
+  value     Int
+  /// Monto mínimo de compra para aplicar el cupón (COP)
+  minOrder  Int       @default(0)
+  /// Número máximo de usos permitidos
+  maxUses   Int?
+  /// Número de veces que se ha utilizado
+  usedCount Int       @default(0)
+  /// Si el cupón está activo
+  active    Boolean   @default(true)
+  /// Fecha de expiración del cupón
+  expiresAt DateTime?
+}
+
+// =============================================================================
+// Modelo: Publicación del Blog
+// =============================================================================
+
+/// Artículo del blog sobre café, cultura y preparación
+model BlogPost {
+  id          String    @id @default(cuid())
+  title       String
+  slug        String    @unique
+  /// Extracto corto para listados
+  excerpt     String?
+  /// Contenido completo del artículo
+  content     String
+  /// Imagen principal del artículo
+  image       String?
+  /// Nombre del autor
+  author      String?
+  /// Fecha de publicación (null = borrador)
+  publishedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
