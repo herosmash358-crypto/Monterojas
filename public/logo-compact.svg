@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 60" fill="none">
+  <!-- Versión compacta del logo para header -->
+  <path d="M5 48 L18 18 L25 30 L32 14 L39 30 L46 24 L55 48Z" fill="#2F4A36" opacity="0.9"/>
+  <ellipse cx="32" cy="32" rx="5" ry="8" fill="#5A3A24" transform="rotate(-15 32 32)"/>
+  <path d="M29 26 Q32 32 29 39" stroke="#F6EEE0" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <text x="62" y="38" font-family="'Playfair Display', Georgia, serif" font-size="26" font-weight="700" fill="#2B1B12" letter-spacing="0.5">
+    Monterojas
+  </text>
+</svg>
