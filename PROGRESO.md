@@ -38,7 +38,7 @@ node scripts/generate-placeholders.js
 - `npx prisma generate` ejecutado (Prisma Client generado).
 - `npx prisma db push` ejecutado (SQLite `dev.db` creado y sincronizado).
 - `npm run build` pasa correctamente.
-- BLOQUEO: `git` no está instalado en este entorno, no se pudo hacer `git commit`. Se registra aquí; los cambios están en el working tree.
+- COMMIT: registro inicial pendiente hasta instalar git (ver Bloqueos conocidos).
 
 ## FASE 1: SISTEMA DE DISEÑO Y LAYOUT — HECHO ✅
 
@@ -70,7 +70,14 @@ node scripts/generate-placeholders.js
 
 Ver plan completo en el mensaje del usuario.
 
+## Todo en condiciones (pre-Fase 2) ✅
+
+- Imágenes placeholder SVG generadas: 24 productos, 7 categorías, hero y 3 de blog en `public/images/`.
+- `CardImage` (`ui/Card.tsx`) migrada a `next/image`: `npm run lint` sin warnings ni errores.
+- Eliminados re-exports duplicados de `src/components/layout/` (Header/Footer/Logo viven en `src/components/common/`).
+- Git instalado v2.56 (vía winget). Repositorio inicializado en `main` con identidad `monte_rojas_coffe`.
+- Commit raíz `8576215`: Fase 0-1.5 completa (161 archivos). `.env`, `*.db` y `next-env.d.ts` excluidos correctamente.
+
 ## Bloqueos conocidos
 
-- `git` no instalado: no se pueden hacer commits. Fase 0 completada sin commit.
-- Imágenes de producto: `public/images/*` vacío. Ejecutar `scripts/generate-placeholders.js` o conseguir fotos reales.
+- NINGUNO ACTIVO. El bloqueo de git quedó resuelto (instalado y configurado).
