@@ -594,9 +594,48 @@ const PRODUCTS_DATA = [
 const REVIEWS_SAMPLES = [
   { rating: 5, title: 'Frescura inigualable y tueste perfecto', comment: 'Llegó con fecha de tostión de solo 4 días atrás. En taza se siente exactamente la descripción de las notas de cata.', brewMethod: 'V60 (Hario)', isVerified: true, helpfulCount: 14 },
   { rating: 5, title: 'El mejor café que he probado en Colombia', comment: 'El dulzor a panela y la acidez jugosa son extraordinarios. Cero amargor quemado.', brewMethod: 'Chemex', isVerified: true, helpfulCount: 9 },
-  { rating: 4, title: 'Muy buen balance aromático', comment: 'Recomiendo usar agua a 91°C para que resalten los azúcares naturales. Volveré a pedir.', brewMethod: 'Aeropress', isVerified: true, helpfulCount: 6 },
+  { rating: 4, title: 'Muy buen balance aromático', comment: 'Recomiendo usar agua a 91°C para resaltar los azúcares naturales. Volveré a pedir.', brewMethod: 'Aeropress', isVerified: true, helpfulCount: 6 },
   { rating: 5, title: 'Excelente para comenzar la mañana', comment: 'El empaque con válvula protege los granos intactos. Calidad de exportación en casa.', brewMethod: 'Prensa Francesa', isVerified: true, helpfulCount: 11 },
   { rating: 4, title: 'Muy agradable con leche de avena', comment: 'Se complementa muy bien en cortado sin perder su carácter frutal.', brewMethod: 'Moka italiana', isVerified: true, helpfulCount: 4 },
+  { rating: 5, title: 'Notas florales que se quedan en la memoria', comment: 'Probé primero sin azúcar y la fragancia llena el ambiente al abrir la bolsa. El mejor regalo que me he dado este año.', brewMethod: 'V60 Origami', isVerified: true, helpfulCount: 8 },
+  { rating: 3, title: 'Buen café, aunque pedí molienda más fina', comment: 'El tostado es bueno y las notas se perciben, pero tuve que ajustar mi molinillo. La calidad del grano promete.', brewMethod: 'Espresso', isVerified: true, helpfulCount: 3 },
+  { rating: 5, title: 'Pedido repetido número cuatro', comment: 'Se volvió mi café de cabecera: consistencia lote tras lote y envoltura con fecha de tostión visible. Excelente servicio al cliente también.', brewMethod: 'Cafetera de goteo', isVerified: true, helpfulCount: 15 },
+];
+
+// Usuarios adicionales para dar realismo a las reseñas (rotan entre productos)
+const REVIEWER_USERS_DATA = [
+  {
+    id: 'usr-camila-2',
+    name: 'Camila Restrepo',
+    email: 'camila.restrepo@example.co',
+    password: 'password123',
+    role: 'USER',
+    flavorPreferences: JSON.stringify(['Jazmín', 'Melocotón', 'Panela']),
+  },
+  {
+    id: 'usr-andres-3',
+    name: 'Andrés Felipe Ospina',
+    email: 'andres.ospina@example.co',
+    password: 'password123',
+    role: 'USER',
+    flavorPreferences: JSON.stringify(['Cacao oscuro', 'Caramelo', 'Café oscuro']),
+  },
+  {
+    id: 'usr-valeria-4',
+    name: 'Valeria Morales',
+    email: 'valeria.morales@example.co',
+    password: 'password123',
+    role: 'USER',
+    flavorPreferences: JSON.stringify(['FRUTAL', 'Maracuyá', 'Honey']),
+  },
+  {
+    id: 'usr-carla-5',
+    name: 'Carlos Eduardo Peña',
+    email: 'carlos.pena@example.co',
+    password: 'password123',
+    role: 'USER',
+    flavorPreferences: JSON.stringify(['Espresso', 'Chocolate derretido', 'Medio-Oscuro']),
+  },
 ];
 
 async function main() {
@@ -642,6 +681,12 @@ async function main() {
     },
   });
   console.log(`✓ Usuario de prueba creado: ${testUser.email}`);
+
+  // 2b. Crear usuarios de reseñas (rotan para dar realismo)
+  for (const reviewer of REVIEWER_USERS_DATA) {
+    await prisma.user.create({ data: reviewer });
+  }
+  console.log(`✓ ${REVIEWER_USERS_DATA.length} usuarios de reseñas creados.`);
 
   // 3. Crear categorías
   const categoryMap = new Map();
@@ -736,18 +781,20 @@ async function main() {
           url: `/images/products/${p.slug}-${v}.svg`,
           alt: `${p.name} - Presentación ${v}`,
           displayOrder: v,
+          isPrimary: v === 1,
         },
       });
     }
 
-    // 3 a 5 reseñas por producto
-    const numReviews = 3 + (i % 3);
+    // Entre 3 y 8 reseñas por producto, rotando usuarios y muestras
+    const numReviews = 3 + (i % 6);
     for (let r = 0; r < numReviews; r++) {
       const sample = REVIEWS_SAMPLES[(i + r) % REVIEWS_SAMPLES.length];
+      const reviewerId = [testUser.id, ...REVIEWER_USERS_DATA.map((u) => u.id)][r % 5];
       await prisma.review.create({
         data: {
           productId: createdProduct.id,
-          userId: testUser.id,
+          userId: reviewerId,
           rating: sample.rating,
           title: sample.title,
           content: sample.comment,

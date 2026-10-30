@@ -61,14 +61,24 @@ node scripts/generate-placeholders.js
 - Tipos: `flavorNotes` ahora opcional en `Product` (accesorios no tienen notas de cata); consumidores actualizados (`ProductCard`, `SearchBar`, `page.tsx`, `buscar/page.tsx`) con acceso null-safe.
 - `npm run lint` OK (solo warning conocido de `<img>` en UI/Card.tsx). `npm run build` OK: 51 páginas.
 
-## FASE 2: DATOS Y CATÁLOGO — PENDIENTE
+## FASE 2: DATOS Y CATÁLOGO — HECHO ✅
 
-- `prisma/schema.prisma` ajustado para SQLite (enum `Role` → `String`, relación `OrderItem.variant` agregada).
-- Faltan: seed con 24 productos, 3-8 reseñas/producto, usuario de prueba; `prisma/seed.ts` y script en `package.json`.
+- `prisma/seed.js` completado y ejecutado: 24 productos, 7 categorías, 3 cupones (MONTEROJAS10, BIENVENIDO, ENVIOFREE), 72 imágenes locales (3 por producto, primera `isPrimary`), 3 posts de blog, usuario de prueba (`carlos@monterojas.co` / pass `password123`) y 4 usuarios de reseñas.
+- Reseñas: 132 en total, entre 3 y 8 por producto, rotando usuarios para realismo.
+- `package.json`: scripts `db:push`, `db:generate`, `db:seed` y config `prisma.seed`.
+- Verificación con `scripts/check-db.js` + spot-check temporales: conteos y relaciones consistentes. `npm run build` OK (51 páginas).
+- Comandos: `npm run db:push` → `npm run db:seed`.
+
+### Nota para Fase 3 (slugs divergentes)
+
+- Seed/estático: categorías `cafes-especiales` y `capsulas-y-monodosis`.
+- Catálogo frontend (`lib/data/categories.ts`): `cafes-especiales-microlotes` y `capsulas-monodosis`.
+- Decisión pendiente al conectar frontend ↔ DB: unificar slugs (fuente de verdad) o mapear en la capa de datos. El mega-menú enlaza `/categorias/cafes-especiales-microlotes`, que no existe en la DB del seed.
 
 ## FASE 3-8 — PENDIENTE
 
-Ver plan completo en el mensaje del usuario.
+- Fase 3 sugerida: APIs/rutas usando el Prisma Client (`src/lib/prisma.ts` singleton) y conectar páginas del catálogo a la DB, resolviendo los slugs divergentes (nota arriba).
+- Ver plan completo en el mensaje del usuario.
 
 ## Todo en condiciones (pre-Fase 2) ✅
 
