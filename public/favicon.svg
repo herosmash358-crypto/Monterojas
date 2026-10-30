@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 60" fill="none">
+  <!-- Montaña -->
+  <path d="M5 50 L20 18 L28 30 L35 12 L42 30 L50 22 L58 50Z" fill="#2F4A36" opacity="0.9"/>
+  <path d="M5 50 L20 22 L28 33 L35 16 L42 33 L50 26 L58 50Z" fill="#5A3A24" opacity="0.3"/>
+  <!-- Grano de café -->
+  <ellipse cx="35" cy="32" rx="6" ry="9" fill="#5A3A24" transform="rotate(-15 35 32)"/>
+  <path d="M31 25 Q35 32 31 40" stroke="#F6EEE0" stroke-width="1" fill="none" stroke-linecap="round"/>
+</svg>

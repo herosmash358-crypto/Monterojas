@@ -1,0 +1,61 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-espresso: #2B1B12;
+  --color-tierra: #5A3A24;
+  --color-crema: #F6EEE0;
+  --color-lino: #EADCC4;
+  --color-ocre: #D49A2A;
+  --color-ocre-hover: #B8821C;
+  --color-bosque: #2F4A36;
+  --color-oliva: #6B7040;
+  --color-salvia: #A9B796;
+  --color-error: #A63D2F;
+}
+
+body {
+  background-color: var(--color-crema);
+  color: var(--color-espresso);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom craft scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #F6EEE0;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #EADCC4;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #5A3A24;
+}
+
+/* Subtle paper texture */
+.bg-kraft-grain {
+  background-color: #F6EEE0;
+  background-image: radial-gradient(#5A3A24 0.6px, transparent 0.6px), radial-gradient(#2B1B12 0.6px, #F6EEE0 0.6px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* Respect prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none">
+  <defs>
+    <linearGradient id="bg1" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#5A3A24"/>
+      <stop offset="100%" stop-color="#2B1B12"/>
+    </linearGradient>
+    <radialGradient id="glow1" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#D49A2A" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#5A3A24" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow1">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-color="#000" flood-opacity="0.3"/>
+    </filter>
+  </defs>
+  <!-- Fondo con gradiente -->
+  <rect width="600" height="600" fill="url(#bg1)" rx="12"/>
+  <rect width="600" height="600" fill="url(#glow1)"/>
+  <!-- Textura sutil -->
+  <rect width="600" height="600" fill="#000" opacity="0.02"/>
+  <!-- Bolsa de café estilizada -->
+  <rect x="175" y="150" width="250" height="320" rx="8" fill="#D49A2A" opacity="0.15" filter="url(#shadow1)"/>
+  <rect x="180" y="155" width="240" height="310" rx="6" fill="#D49A2A" opacity="0.25"/>
+  <!-- Sello circular -->
+  <circle cx="300" cy="280" r="70" fill="none" stroke="#D49A2A" stroke-width="2" opacity="0.8"/>
+  <circle cx="300" cy="280" r="60" fill="none" stroke="#D49A2A" stroke-width="1" opacity="0.5"/>
+  <!-- Grano de café central -->
+  <g transform="translate(300, 280) rotate(30)">
+    <ellipse rx="25" ry="38" fill="#D49A2A" opacity="0.9"/>
+    <path d="M-8,-30 Q0,0 -8,30" stroke="#5A3A24" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Vapor decorativo -->
+  <g opacity="0.4" transform="translate(5, 0)">
+    <path d="M270,140 Q260,120 270,100 Q280,80 270,60" stroke="#D49A2A" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M300,145 Q290,120 300,95 Q310,70 300,50" stroke="#D49A2A" stroke-width="2" fill="none" stroke-linecap="round"/>
+    <path d="M330,140 Q320,120 330,100 Q340,80 330,60" stroke="#D49A2A" stroke-width="2" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Nombre del producto -->
+  <text x="300" y="520" text-anchor="middle" font-family="Georgia, serif" font-size="18" fill="#D49A2A" opacity="0.9">Tabi Natural</text>
+  <text x="300" y="545" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#D49A2A" opacity="0.6">MONTEROJAS</text>
+</svg>

@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 700" fill="none">
+  <defs>
+    <linearGradient id="herobg" x1="0" y1="0" x2="0.7" y2="1">
+      <stop offset="0%" stop-color="#2B1B12"/>
+      <stop offset="50%" stop-color="#3E2217"/>
+      <stop offset="100%" stop-color="#5A3A24"/>
+    </linearGradient>
+    <radialGradient id="heroglow" cx="70%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#D49A2A" stop-opacity="0.2"/>
+      <stop offset="100%" stop-color="#2B1B12" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1400" height="700" fill="url(#herobg)"/>
+  <rect width="1400" height="700" fill="url(#heroglow)"/>
+  <!-- Montañas de fondo -->
+  <path d="M0,700 L100,400 L250,500 L400,300 L550,450 L700,250 L850,400 L1000,300 L1150,350 L1400,500 L1400,700Z" fill="#2F4A36" opacity="0.3"/>
+  <path d="M0,700 L150,500 L300,550 L450,400 L600,500 L750,380 L900,450 L1050,400 L1200,480 L1400,550 L1400,700Z" fill="#2F4A36" opacity="0.15"/>
+  <!-- Taza de café grande -->
+  <g transform="translate(900, 250)">
+    <ellipse cx="100" cy="180" rx="120" ry="25" fill="#000" opacity="0.15"/>
+    <rect x="10" y="60" width="180" height="130" rx="10" fill="#EADCC4"/>
+    <ellipse cx="100" cy="60" rx="90" ry="30" fill="#5A3A24"/>
+    <ellipse cx="100" cy="60" rx="75" ry="22" fill="#3E2217"/>
+    <!-- Vapor -->
+    <path d="M60,30 Q50,0 60,-30 Q70,-60 60,-90" stroke="#F6EEE0" stroke-width="3" fill="none" opacity="0.4" stroke-linecap="round"/>
+    <path d="M100,25 Q90,-5 100,-35 Q110,-65 100,-95" stroke="#F6EEE0" stroke-width="3" fill="none" opacity="0.5" stroke-linecap="round"/>
+    <path d="M140,30 Q130,0 140,-30 Q150,-60 140,-90" stroke="#F6EEE0" stroke-width="3" fill="none" opacity="0.4" stroke-linecap="round"/>
+    <!-- Asa -->
+    <path d="M190,90 Q240,90 240,130 Q240,170 190,170" stroke="#EADCC4" stroke-width="12" fill="none" stroke-linecap="round"/>
+  </g>
+  <!-- Texto de marca -->
+  <text x="100" y="300" font-family="Georgia, serif" font-size="72" fill="#F6EEE0" font-weight="bold">Monterojas</text>
+  <text x="100" y="360" font-family="Arial, sans-serif" font-size="24" fill="#D49A2A" letter-spacing="4">CAFÉ DE ORIGEN COLOMBIANO</text>
+  <text x="100" y="420" font-family="Arial, sans-serif" font-size="18" fill="#EADCC4" opacity="0.8">Del corazón de la montaña a tu taza</text>
+</svg>

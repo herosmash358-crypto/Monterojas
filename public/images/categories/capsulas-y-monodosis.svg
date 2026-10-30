@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 400" fill="none">
+  <defs>
+    <linearGradient id="catbg" x1="0" y1="0" x2="1" y2="0.5">
+      <stop offset="0%" stop-color="#4A2C1A"/>
+      <stop offset="100%" stop-color="#2B1B12"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="400" fill="url(#catbg)" rx="8"/>
+  <!-- Montañas decorativas -->
+  <path d="M0,400 L200,200 L350,300 L500,150 L650,280 L800,180 L1000,250 L1200,200 L1200,400Z" fill="#EADCC4" opacity="0.1"/>
+  <text x="100" y="220" font-family="Georgia, serif" font-size="48" fill="#F6EEE0" font-weight="bold">Cápsulas y Monodosis</text>
+  <text x="100" y="260" font-family="Arial, sans-serif" font-size="18" fill="#EADCC4" opacity="0.8">Monterojas — Café de Origen</text>
+</svg>
