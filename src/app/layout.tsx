@@ -5,6 +5,7 @@ import { StoreProvider } from '@/lib/store';
 import { Header } from '@/components/common/Header';
 import { Footer } from '@/components/common/Footer';
 import { CartDrawer } from '@/components/cart/CartDrawer';
+import { getCategories } from '@/lib/server/catalog';
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -43,16 +44,18 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const categories = await getCategories();
+
   return (
     <html lang="es" className={`${playfair.variable} ${dmSans.variable}`}>
       <body className="min-h-screen flex flex-col font-sans selection:bg-ocre/30 selection:text-espresso bg-crema">
         <StoreProvider>
-          <Header />
+          <Header categories={categories} />
           <main className="flex-1">{children}</main>
           <Footer />
           <CartDrawer />

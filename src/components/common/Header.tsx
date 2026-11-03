@@ -23,14 +23,17 @@ import {
 import { Logo } from './Logo';
 import { SearchBar } from './SearchBar';
 import { useStore } from '@/lib/store';
-import { CATEGORIES } from '@/lib/data/categories';
+import { Category } from '@/lib/types';
 
-export const Header: React.FC = () => {
+export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) => {
   const pathname = usePathname();
   const { cart, openCart, wishlist, user } = useStore();
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [activeCategoryTab, setActiveCategoryTab] = useState(CATEGORIES[2].id); // Default Cafés de Origen
+  const categoriesList = categories ?? [];
+  const [activeCategoryTab, setActiveCategoryTab] = useState<string>(
+    categoriesList[2]?.id ?? categoriesList[0]?.id ?? ''
+  ); // Default: 3ra categoría (Cafés de Origen) o la primera disponible
   const [scrolled, setScrolled] = useState(false);
 
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
@@ -49,7 +52,7 @@ export const Header: React.FC = () => {
     setIsMobileMenuOpen(false);
   }, [pathname]);
 
-  const activeCategory = CATEGORIES.find((c) => c.id === activeCategoryTab) || CATEGORIES[0];
+  const activeCategory = categoriesList.find((c) => c.id === activeCategoryTab) || categoriesList[0];
 
   const getCategoryIcon = (slug: string) => {
     switch (slug) {
@@ -158,7 +161,7 @@ export const Header: React.FC = () => {
               <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isMegaMenuOpen ? 'rotate-180 text-ocre' : ''}`} />
             </button>
 
-            {CATEGORIES.slice(0, 5).map((cat) => (
+            {categoriesList.slice(0, 5).map((cat) => (
               <Link
                 key={cat.id}
                 href={`/categorias/${cat.slug}`}
@@ -201,7 +204,7 @@ export const Header: React.FC = () => {
               <span className="text-[10px] font-bold uppercase tracking-widest text-tierra/70 px-3 py-1 block">
                 Explorar Catálogo
               </span>
-              {CATEGORIES.map((cat) => (
+              {categoriesList.map((cat) => (
                 <button
                   key={cat.id}
                   onMouseEnter={() => setActiveCategoryTab(cat.id)}
@@ -318,7 +321,7 @@ export const Header: React.FC = () => {
               <span className="text-[10px] font-bold uppercase tracking-widest text-tierra/70 block mb-2">
                 Categorías de Café
               </span>
-              {CATEGORIES.map((cat) => (
+              {categoriesList.map((cat) => (
                 <Link
                   key={cat.id}
                   href={`/categorias/${cat.slug}`}

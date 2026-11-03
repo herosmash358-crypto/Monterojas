@@ -7,6 +7,7 @@
 import { prisma } from '@/lib/prisma';
 import type {
   Category,
+  BlogPost,
   Product,
   Review,
 } from '@/lib/types';
@@ -228,4 +229,45 @@ export async function getProductsBySlugs(slugs: string[]): Promise<Product[]> {
   const all = await getProducts();
   const slugsSet = new Set(slugs);
   return all.filter((p) => slugsSet.has(p.slug));
+}
+
+/** Todos los posts de blog publicados, ordenados por fecha descendente */
+export async function getBlogPosts(): Promise<BlogPost[]> {
+  const rows = await prisma.blogPost.findMany({
+    where: { publishedAt: { not: null } },
+    orderBy: { publishedAt: 'desc' },
+  });
+  return rows.map((row) => {
+    const authorName = row.author ? String(row.author).split(' (')[0] : '';
+    const authorRole = row.author
+      ? String(row.author).replace(/^.*\((.*)\)$/, '$1')
+      : '';
+    const date = row.publishedAt
+      ? new Intl.DateTimeFormat('es-CO', {
+          day: 'numeric',
+          month: 'long',
+          year: 'numeric',
+        }).format(row.publishedAt)
+      : '';
+    return {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      excerpt: row.excerpt ?? '',
+      readTime: '6 min de lectura',
+      category: 'Guías de Preparación',
+      date,
+      image: row.image ?? '',
+      author: { name: authorName, role: authorRole },
+      content: parseJsonArray<string>(row.content),
+    };
+  });
+}
+
+/** Un post de blog por slug (o null) */
+export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> {
+  const row = await prisma.blogPost.findUnique({ where: { slug } });
+  if (!row) return null;
+  const all = await getBlogPosts();
+  return all.find((p) => p.slug === slug) ?? null;
 }

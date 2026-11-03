@@ -7,6 +7,7 @@ import {
   getProductBySlug,
   getProducts,
   getProductsBySlugs,
+  getReviewsByProduct,
 } from '@/lib/server/catalog';
 import { ProductDetail } from '@/components/product/ProductDetail';
 import { ProductReviews } from '@/components/product/ProductReviews';
@@ -36,9 +37,10 @@ export default async function ProductPage({ params }: ProductPageProps) {
     notFound();
   }
 
-  const [category, relatedProducts] = await Promise.all([
+  const [category, relatedProducts, productReviews] = await Promise.all([
     product.categorySlug ? getCategoryBySlug(product.categorySlug) : Promise.resolve(null),
     getProductsBySlugs(product.relatedProductSlugs),
+    getReviewsByProduct(product.id),
   ]);
 
   const related = relatedProducts.slice(0, 4);
@@ -65,7 +67,7 @@ export default async function ProductPage({ params }: ProductPageProps) {
       <ProductDetail product={product} />
 
       {/* Reviews */}
-      <ProductReviews product={product} />
+      <ProductReviews product={product} reviews={productReviews} />
 
       {/* Related products */}
       {related.length > 0 && (

@@ -85,6 +85,19 @@ export interface Category {
   subcategories: { slug: string; name: string }[];
 }
 
+export interface BlogPost {
+  id: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  readTime: string;
+  category: string;
+  date: string;
+  image: string;
+  author: { name: string; role: string };
+  content: string[];
+}
+
 export interface CartItem {
   id: string; // unique item id = `${productId}-${variantWeight}-${grind}`
   productId: string;

@@ -82,9 +82,27 @@ node scripts/generate-placeholders.js
 
 - La fuente de verdad es el catálogo estático de `src/lib/data`; la DB se siembra desde él, por tanto los slugs coinciden y el mega-menú enlaza rutas existentes.
 
-## FASE 4-8 — PENDIENTE
+## FASE 4: MIGRAR LECTURAS ESTÁTICAS A DB — HECHO ✅
 
-- Fase 4 sugerida: migrar Home, Buscar, Header, store de reseñas y demás lecturas estáticas (`src/app/page.tsx`, `buscar/page.tsx`, `Header.tsx`, `store.tsx`) a la capa `catalog.ts` / DB para usar `reviewCount` real. Registrado en `PROGRESO.md` como host fino conocido.
+- `src/app/page.tsx` (Home): convertido a Server Component; lee productos/categorías/blog de `catalog.ts` (`getProducts`, `getCategories`, `getBlogPosts`). El "Asistente Sensorial" extraído a `src/components/home/TasteAssistant.tsx` (cliente, recibe productos como prop).
+- `src/app/buscar/page.tsx`: convertido a Server Component; filtra búsqueda por `q` en el servidor. `SearchContent` separado en `src/app/buscar/SearchContent.tsx` (cliente, recibe productos como prop).
+- `src/components/common/Header.tsx`: recibe categorías del layout como prop `categories` (obtenidas con `getCategories()` en `layout.tsx`); deja de importar `CATEGORIES` estático.
+- `src/components/common/SearchBar.tsx`: carga productos desde `GET /api/products` para el autocomplete en lugar de `PRODUCTS` estático.
+- `src/app/producto/[slug]/page.tsx`: obtiene reseñas con `getReviewsByProduct(product.id)` y las pasa a `ProductReviews`.
+- `src/components/product/ProductReviews.tsx`: acepta prop opcional `reviews` (de DB) con fallback al store local; `Review` importado de tipos.
+- `src/lib/server/catalog.ts`: agregadas `getBlogPosts()` y `getBlogPostBySlug()` con mapeo de `content` (JSON→array) y `author`.
+- `src/lib/types.ts`: agregada interfaz `BlogPost`.
+- `src/app/layout.tsx`: async; obtiene categorías y las pasa a `<Header categories={categories} />`.
+- `npm run lint` OK, `npm run build` OK (51 páginas). Smoke test: Home, Buscar, ficha de producto con reseñas de DB — todos correctos.
+
+### Pendiente (Fase 5+)
+
+- `src/lib/store.tsx`: `INITIAL_REVIEWS` sigue como semilla estática del estado local de reseñas; las reseñas nuevas del cliente se guardan en localStorage (no se persisten en DB). Falta API de creación de reseñas para sincronizar.
+- `src/app/blog/page.tsx` y `blog/[slug]/page.tsx`: aún leen `BLOG_POSTS` estático.
+- `src/app/cuenta/favoritos/page.tsx`: aún lee `PRODUCTS` estático.
+
+## FASE 5-8 — PENDIENTE
+
 - Ver plan completo en el mensaje del usuario.
 
 ## Todo en condiciones (pre-Fase 2) ✅

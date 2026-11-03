@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { Search, X, Clock, Sparkles, ArrowRight } from 'lucide-react';
-import { PRODUCTS } from '@/lib/data/products';
 import Link from 'next/link';
 import Image from 'next/image';
+import { Product } from '@/lib/types';
 
 interface SearchBarProps {
   onSearchSubmit?: () => void;
@@ -24,13 +24,29 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [productsLoaded, setProductsLoaded] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    // Cargar productos para el autocomplete desde la API
+    let cancelled = false;
+    fetch('/api/products')
+      .then((res) => res.json())
+      .then((data) => {
+        if (!cancelled && data?.products) {
+          setProducts(data.products);
+          setProductsLoaded(true);
+        }
+      })
+      .catch(() => setProductsLoaded(true));
+    return () => { cancelled = true; };
+
+    // Cargar búsquedas recientes
     try {
       const saved = localStorage.getItem('monterojas_recent_searches');
       if (saved) {
-        setRecentSearches(JSON.parse(saved).slice(0, 5));
+        setRecentSearches(JSON.parse(saved as string).slice(0, 5));
       }
     } catch (e) {}
   }, []);
@@ -68,8 +84,8 @@ export const SearchBar: React.FC<SearchBarProps> = ({
   };
 
   // Live matching products (tolerant search)
-  const matches = query.trim().length >= 2
-    ? PRODUCTS.filter((p) => {
+  const matches = query.trim().length >= 2 && productsLoaded
+    ? products.filter((p) => {
         const q = query.toLowerCase();
         return (
           p.name.toLowerCase().includes(q) ||

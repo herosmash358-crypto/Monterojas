@@ -1,6 +1,3 @@
-'use client';
-
-import React, { useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -15,31 +12,19 @@ import {
   HeartHandshake,
   BookOpen,
 } from 'lucide-react';
-import { PRODUCTS } from '@/lib/data/products';
-import { CATEGORIES } from '@/lib/data/categories';
-import { BLOG_POSTS } from '@/lib/data/blog';
 import { ProductCard } from '@/components/product/ProductCard';
+import { TasteAssistant } from '@/components/home/TasteAssistant';
+import { getProducts, getCategories, getBlogPosts } from '@/lib/server/catalog';
 
-export default function HomePage() {
-  const [selectedTaste, setSelectedTaste] = useState<'balance' | 'frutal' | 'intenso' | 'microlote'>('balance');
+export default async function HomePage() {
+  const products = await getProducts();
+  const categories = await getCategories();
+  const blogPosts = await getBlogPosts();
 
-  const featuredBestsellers = PRODUCTS.filter((p) => p.isBestseller).slice(0, 4);
-  const microlotes = PRODUCTS.filter((p) => p.categorySlug === 'cafes-especiales-microlotes').slice(0, 3);
-
-  // Recommendations according to selected taste
-  const getTasteRecommendedProducts = () => {
-    switch (selectedTaste) {
-      case 'frutal':
-        return PRODUCTS.filter((p) => p.department === 'Nariño' || p.flavorNotes?.some((n) => n.includes('Mandarina') || n.includes('Durazno') || n.includes('Jazmín'))).slice(0, 3);
-      case 'intenso':
-        return PRODUCTS.filter((p) => p.roastLevel === 'Medio-Oscuro' || p.categorySlug === 'capsulas-monodosis').slice(0, 3);
-      case 'microlote':
-        return PRODUCTS.filter((p) => p.categorySlug === 'cafes-especiales-microlotes').slice(0, 3);
-      case 'balance':
-      default:
-        return PRODUCTS.filter((p) => p.department === 'Huila' || p.department === 'Antioquia').slice(0, 3);
-    }
-  };
+  const featuredBestsellers = products.filter((p) => p.isBestseller).slice(0, 4);
+  const microlotes = products
+    .filter((p) => p.categorySlug === 'cafes-especiales-microlotes')
+    .slice(0, 3);
 
   return (
     <div className="space-y-16 lg:space-y-24 pb-20">
@@ -171,7 +156,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
-          {CATEGORIES.map((cat) => (
+          {categories.map((cat) => (
             <Link
               key={cat.id}
               href={`/categorias/${cat.slug}`}
@@ -223,50 +208,7 @@ export default function HomePage() {
       </section>
 
       {/* 4. ASISTENTE SENSORIAL: "Encuentra tu Café Ideal" */}
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="rounded-3xl bg-crema-dark p-6 sm:p-10 border border-lino shadow-soft">
-          <div className="max-w-2xl mb-8">
-            <span className="text-xs font-bold uppercase tracking-widest text-bosque">
-              Guía de Selección Barista
-            </span>
-            <h2 className="font-serif text-2xl sm:text-3xl font-bold text-espresso mt-1">
-              ¿Cómo te gusta tomar tu café en las mañanas?
-            </h2>
-            <p className="text-xs sm:text-sm text-tierra mt-2">
-              Selecciona tu inclinación sensorial predilecta y te mostraremos los lotes calibrados para tu paladar:
-            </p>
-
-            {/* Selector tabs */}
-            <div className="flex flex-wrap gap-2 mt-4">
-              {[
-                { id: 'balance', label: 'Equilibrado & Dulce (Huila / Antioquia)' },
-                { id: 'frutal', label: 'Floral, Cítrico & Brillante (Nariño)' },
-                { id: 'intenso', label: 'Achocolatado & Fuerte (Santander)' },
-                { id: 'microlote', label: 'Exótico & Complejo (Geisha / Honey)' },
-              ].map((tab) => (
-                <button
-                  key={tab.id}
-                  onClick={() => setSelectedTaste(tab.id as any)}
-                  className={`text-xs font-semibold px-4 py-2 rounded-full transition-all ${
-                    selectedTaste === tab.id
-                      ? 'bg-ocre text-espresso shadow-sm font-bold'
-                      : 'bg-white text-espresso hover:bg-lino border border-lino'
-                  }`}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Results grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
-            {getTasteRecommendedProducts().map((prod) => (
-              <ProductCard key={prod.id} product={prod} />
-            ))}
-          </div>
-        </div>
-      </section>
+      <TasteAssistant products={products} />
 
       {/* 5. MICRO-LOTES & GEISHA: EDICIÓN LIMITADA */}
       <section className="bg-espresso text-crema py-16 lg:py-20">
@@ -380,7 +322,7 @@ export default function HomePage() {
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {BLOG_POSTS.slice(0, 3).map((post) => (
+          {blogPosts.slice(0, 3).map((post) => (
             <Link
               key={post.id}
               href={`/blog/${post.slug}`}

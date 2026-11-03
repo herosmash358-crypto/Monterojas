@@ -2,19 +2,21 @@
 
 import React, { useMemo, useState } from 'react';
 import { ThumbsUp, CheckCircle2, MessageSquare, PenLine } from 'lucide-react';
-import { Product } from '@/lib/types';
+import { Product, Review } from '@/lib/types';
 import { StarRating } from '@/components/product/StarRating';
 import { Button } from '@/components/ui/Button';
 import { useStore } from '@/lib/store';
 
 interface ProductReviewsProps {
   product: Product;
+  /** Reseñas obtenidas de la DB (si se provee, se usan en lugar del store local) */
+  reviews?: Review[];
 }
 
-export const ProductReviews: React.FC<ProductReviewsProps> = ({ product }) => {
-  const { reviews, addReview, markReviewHelpful } = useStore();
+export const ProductReviews: React.FC<ProductReviewsProps> = ({ product, reviews: dbReviews }) => {
+  const { reviews: storeReviews, addReview, markReviewHelpful } = useStore();
 
-  const productReviews = useMemo(() => reviews[product.id] || [], [reviews, product.id]);
+  const productReviews = useMemo(() => dbReviews ?? (storeReviews[product.id] || []), [dbReviews, storeReviews, product.id]);
 
   const [showForm, setShowForm] = useState(false);
   const [formRating, setFormRating] = useState(5);
