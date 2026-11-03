@@ -97,11 +97,27 @@ node scripts/generate-placeholders.js
 
 ### Pendiente (Fase 5+)
 
-- `src/lib/store.tsx`: `INITIAL_REVIEWS` sigue como semilla estática del estado local de reseñas; las reseñas nuevas del cliente se guardan en localStorage (no se persisten en DB). Falta API de creación de reseñas para sincronizar.
-- `src/app/blog/page.tsx` y `blog/[slug]/page.tsx`: aún leen `BLOG_POSTS` estático.
-- `src/app/cuenta/favoritos/page.tsx`: aún lee `PRODUCTS` estático.
+## FASE 5: CHECKOUT Y ÓRDENES CONECTADOS A LA DB — HECHO ✅
 
-## FASE 5-8 — PENDIENTE
+- `src/app/api/orders/route.ts`: GET (listar órdenes) y POST (crear orden en transacción: valida stock, descuenta inventario de variantes, crea Order + OrderItems). Órdenes de invitado (userId null) soportadas.
+- `src/lib/server/orders.ts`: `getServerOrders(userId?)` mapea órdenes de la DB a `OrderUI`.
+- `src/lib/store.tsx`: `createOrder` es ahora async; llama a `POST /api/orders` y, si falla, falla al flujo localStorage original. `addReview` y `markReviewHelpful` ya llamaban a sus APIs (cierre Fase 4).
+- `src/app/checkout/page.tsx`: `handlePlaceOrder` es async y usa `await createOrder(...)`.
+- `src/app/cuenta/pedidos/page.tsx`: Server Component que lee órdenes de `getServerOrders()`.
+- `src/components/cuenta/OrdersList.tsx`: componente cliente que renderiza el historial (número de orden, estado, fecha, guía, ítems, total, dirección).
+- `npm run lint` OK, `npm run build` OK (55 páginas).
+- Smoke test: orden de prueba creada, stock descontado (45→44), página de pedidos renderiza con datos de DB.
+
+### Pendientes restantes (Fase 6+)
+
+- `src/app/blog/page.tsx` y `blog/[slug]/page.tsx`: YA MIGRADOS (Fase 5 previa).
+- `src/app/cuenta/favoritos/page.tsx`: YA MIGRADO (Fase 5 previa).
+- `src/lib/store.tsx`: reseñas nuevas se persisten en DB vía API; el estado local sigue como fallback.
+- `src/app/cuenta/direcciones/page.tsx`: aún lee direcciones del store/localStorage (modelo Address ya existe en schema).
+- Autenticación real contra la DB (login/register actuales son simulados en localStorage).
+- Integración con pasarela de pago real (Wompi/MercadoPago) — ahora es simulada.
+
+## FASE 6-8 — PENDIENTE
 
 - Ver plan completo en el mensaje del usuario.
 

@@ -82,15 +82,15 @@ export default function CheckoutPage() {
     return Object.keys(errs).length === 0;
   };
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
     if (cart.length === 0) return;
 
     setIsSubmitting(true);
 
-    setTimeout(() => {
-      const newOrder = createOrder({
+    setTimeout(async () => {
+      const newOrder = await createOrder({
         status: 'Confirmado',
         items: cart.map((item) => ({
           productId: item.productId,

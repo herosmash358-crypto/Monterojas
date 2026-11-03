@@ -40,7 +40,7 @@ interface StoreContextType {
 
   // Orders
   orders: Order[];
-  createOrder: (orderData: Omit<Order, 'id' | 'date' | 'trackingNumber'>) => Order;
+  createOrder: (orderData: Omit<Order, 'id' | 'date' | 'trackingNumber'>) => Promise<Order>;
 
   // Reviews dynamic
   reviews: Record<string, Review[]>;
@@ -339,7 +339,95 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   };
 
   // Orders
-  const createOrder = (orderData: Omit<Order, 'id' | 'date' | 'trackingNumber'>): Order => {
+  const createOrder = async (
+    orderData: Omit<Order, 'id' | 'date' | 'trackingNumber'>
+  ): Promise<Order> => {
+    const userId = user?.id && user.id !== 'usr-1' ? user.id : undefined;
+
+    // Intento persistir en la base de datos
+    try {
+      const body = {
+        userId,
+        status: orderData.status,
+        items: orderData.items.map((item) => ({
+          productId: item.productId,
+          name: item.name,
+          image: item.image,
+          variantWeight: item.weight,
+          grind: item.grind,
+          unitPrice: item.unitPrice,
+          quantity: item.quantity,
+        })),
+        subtotal: orderData.subtotal,
+        shipping: orderData.shipping,
+        discount: orderData.discount,
+        total: orderData.total,
+        couponCode: appliedDiscount > 0 ? couponCode : undefined,
+        shippingName: orderData.shippingAddress.fullName,
+        shippingEmail: user?.email || '',
+        shippingPhone: orderData.shippingAddress.phone,
+        shippingAddress: orderData.shippingAddress.street,
+        shippingCity: orderData.shippingAddress.city,
+        shippingState: orderData.shippingAddress.department,
+        shippingZip: '',
+        paymentMethod: orderData.paymentMethod,
+        paymentStatus: 'pendiente',
+        notes: orderData.shippingAddress.notes ?? undefined,
+      };
+
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const ordenCreada = data.order;
+
+        // Mapear la orden devuelta al formato Order local (para UI inmediata)
+        const newOrder: Order = {
+          id: ordenCreada.id,
+          date: new Date().toLocaleDateString('es-CO', {
+            day: '2-digit',
+            month: 'long',
+            year: 'numeric',
+          }),
+          status: ordenCreada.status as Order['status'],
+          trackingNumber: ordenCreada.trackingNumber ?? `ENV-${Math.floor(10000000 + Math.random() * 90000000)}-CO`,
+          items: ordenCreada.items.map((item: any) => ({
+            productId: item.productId,
+            name: item.productName,
+            image: item.image,
+            weight: item.weight as WeightOption,
+            grind: item.grind as GrindType,
+            unitPrice: item.unitPrice,
+            quantity: item.quantity,
+          })),
+          subtotal: ordenCreada.subtotal,
+          shipping: ordenCreada.shipping,
+          discount: ordenCreada.discount,
+          total: ordenCreada.total,
+          paymentMethod: ordenCreada.paymentMethod,
+          shippingAddress: {
+            fullName: ordenCreada.shippingName,
+            street: ordenCreada.shippingAddress,
+            city: ordenCreada.shippingCity,
+            department: ordenCreada.shippingState,
+            phone: ordenCreada.shippingPhone,
+            notes: ordenCreada.notes ?? undefined,
+          },
+        };
+
+        setOrders((prev) => [newOrder, ...prev]);
+        clearCart();
+        return newOrder;
+      }
+    } catch (e) {
+      console.error('Error creando orden en la DB:', e);
+    }
+
+    // Fallback: crear orden solo en localStorage (comportamiento original)
     const id = `MON-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
     const newOrder: Order = {
       ...orderData,
