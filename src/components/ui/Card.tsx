@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { cn } from '@/lib/utils';
 
 /* ------------------------------------------------------------------ */
@@ -57,14 +58,14 @@ Card.displayName = 'Card';
 /*  Sub-componentes opcionales para estructura                        */
 /* ------------------------------------------------------------------ */
 
-/** Imagen superior de la tarjeta */
+/** Imagen superior de la tarjeta (usa next/image para optimización automática) */
 export const CardImage: React.FC<
-  React.ImgHTMLAttributes<HTMLImageElement> & { alt: string }
-> = ({ className, alt, ...rest }) => (
-  <img
+  React.ComponentProps<typeof Image>
+> = ({ alt, className, priority = false, ...rest }) => (
+  <Image
     alt={alt}
+    priority={priority}
     className={cn('w-full h-auto object-cover', className)}
-    loading="lazy"
     {...rest}
   />
 );
