@@ -47,6 +47,12 @@ model Category {
   name         String
   slug         String     @unique
   description  String?
+  /// Descripción corta para el mega-menú
+  shortDescription String?
+  /// Ícono lucide-react asociado (ej: "Coffee")
+  iconName     String?
+  /// Subcategorías como JSON [{slug, name}]
+  subcategories String?
   image        String?
   /// ID de la categoría padre para categorías anidadas
   parentId     String?
@@ -68,14 +74,24 @@ model Product {
   name             String
   slug             String   @unique
   sku              String   @unique
+  /// Tagline corto para tarjetas y H1 de detalle
+  tagline          String?
   /// Descripción completa del producto
   description      String
   /// Descripción corta para listados y tarjetas
   shortDescription String?
+  /// Relato de origen / productor para la ficha
+  story            String?
   /// Región de origen (ej: Huila, Nariño)
   origin           String?
+  /// Departamento colombiano de origen (ej: Huila)
+  department       String?
   /// Nombre de la finca productora
   farm             String?
+  /// Productor o asociación
+  producer         String?
+  /// Subcategoría dentro de la categoría (slug)
+  subcategory      String?
   /// Altitud de cultivo en metros (ej: "1800 msnm")
   altitude         String?
   /// Variedad botánica del café (ej: Caturra, Castillo)
@@ -88,10 +104,20 @@ model Product {
   flavorNotes      String?
   /// Puntaje de catación SCA (0-100)
   cuppingScore     Float?
+  /// Método de preparación recomendado (texto)
+  brewMethodRecommended String?
+  /// Moliendas disponibles como JSON string array
+  availableGrinds  String?
+  /// Preguntas frecuentes como JSON [{question, answer}]
+  faqs             String?
+  /// Slugs de productos relacionados como JSON string array
+  relatedProductSlugs String?
   /// Métodos de preparación recomendados como JSON string array
   brewMethods      String?
   /// Certificaciones como JSON string array
   certifications   String?
+  /// Precio de referencia antes del descuento (COP)
+  originalPrice    Int?
 
   // Perfil sensorial (escala 0-5)
   acidity    Int @default(0)
@@ -127,8 +153,10 @@ model Product {
 model ProductVariant {
   id           String @id @default(cuid())
   productId    String
-  /// Peso en gramos: 250, 500, 1000
-  weight       Int
+  /// Peso en gramos: 250, 500, 1000 (null para Unidad / Packs)
+  weight       Int?
+  /// Etiqueta legible del peso (ej: "250g", "Unidad", "Pack degustación")
+  weightLabel  String
   /// Tipo de molienda: entero, medio, fino, espresso, filtro, moka
   grind        String
   /// Precio en pesos colombianos (COP) como entero
@@ -187,6 +215,8 @@ model Review {
   helpfulCount Int      @default(0)
   /// Estado de moderación: approved, pending, rejected
   status       String   @default("approved")
+  /// Etiqueta de fecha tal como se muestra (ej: "14 de Octubre, 2026")
+  dateLabel    String?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
