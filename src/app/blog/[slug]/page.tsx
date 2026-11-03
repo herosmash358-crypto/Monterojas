@@ -1,12 +1,17 @@
-import React from 'react';
 import { notFound } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, Clock, User, ArrowLeft, ArrowRight } from 'lucide-react';
-import { BLOG_POSTS } from '@/lib/data/blog';
+import { getBlogPostBySlug, getBlogPosts } from '@/lib/server/catalog';
+import { BlogPost } from '@/lib/types';
 
-export default function BlogPostPage({ params }: { params: { slug: string } }) {
-  const post = BLOG_POSTS.find((p) => p.slug === params.slug);
+export async function generateStaticParams() {
+  const posts = await getBlogPosts();
+  return posts.map((p) => ({ slug: p.slug }));
+}
+
+export default async function BlogPostPage({ params }: { params: { slug: string } }) {
+  const post = await getBlogPostBySlug(params.slug);
   if (!post) {
     notFound();
   }

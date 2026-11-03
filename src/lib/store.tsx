@@ -367,6 +367,7 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
       verified: true,
     };
 
+    // 1. Guardar en localStorage (estado local inmediato)
     setReviews((prev) => {
       const currentList = prev[newRev.productId] || [];
       return {
@@ -374,6 +375,21 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         [newRev.productId]: [completeReview, ...currentList],
       };
     });
+
+    // 2. Persistir en la base de datos (fire and forget, no bloquea la UI)
+    const userId = user?.id && user.id !== 'usr-1' ? user.id : undefined;
+    fetch('/api/reviews', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        productId: newRev.productId,
+        userId,
+        rating: newRev.rating,
+        title: newRev.title,
+        content: newRev.comment,
+        brewMethod: newRev.brewMethod,
+      }),
+    }).catch(() => {}); // ignorar errores de red o DB
   };
 
   const markReviewHelpful = (productId: string, reviewId: string) => {
@@ -386,6 +402,12 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         ),
       };
     });
+
+    // Persistir voto en la base de datos solo si la reseña es de la DB
+    // (los ids locales empiezan con 'rev-')
+    if (!reviewId.startsWith('rev-')) {
+      fetch(`/api/reviews/${reviewId}/helpful`, { method: 'PATCH' }).catch(() => {});
+    }
   };
 
   return (

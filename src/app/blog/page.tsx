@@ -1,10 +1,12 @@
-import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BookOpen, ChevronRight, Clock, ArrowRight } from 'lucide-react';
-import { BLOG_POSTS } from '@/lib/data/blog';
+import { getBlogPosts } from '@/lib/server/catalog';
+import { BlogPost } from '@/lib/types';
 
-export default function BlogIndexPage() {
+export default async function BlogIndexPage() {
+  const posts = await getBlogPosts();
+
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-10 pb-20">
       {/* Breadcrumbs */}
@@ -31,7 +33,7 @@ export default function BlogIndexPage() {
 
       {/* Articles Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {BLOG_POSTS.map((post) => (
+        {posts.map((post) => (
           <Link
             key={post.id}
             href={`/blog/${post.slug}`}
