@@ -123,9 +123,9 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
 
             {/* Account */}
             <Link
-              href="/cuenta"
+              href={user ? '/cuenta' : '/login'}
               className="p-2.5 text-espresso hover:text-ocre transition-colors rounded-full hover:bg-lino/50 hidden sm:flex items-center gap-1.5 text-xs font-medium"
-              title="Mi Cuenta"
+              title={user ? 'Mi Cuenta' : 'Iniciar sesión'}
             >
               <User className="w-5 h-5" />
               <span className="hidden xl:inline">{user ? user.name.split(' ')[0] : 'Ingresar'}</span>

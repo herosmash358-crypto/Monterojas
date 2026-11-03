@@ -33,10 +33,14 @@ interface StoreContextType {
 
   // Auth & Profile
   user: UserProfile | null;
-  login: (email: string, pass: string) => boolean;
-  register: (name: string, email: string, pass: string) => boolean;
+  login: (email: string, pass: string) => Promise<boolean>;
+  register: (name: string, email: string, pass: string) => Promise<boolean>;
   logout: () => void;
   updateProfile: (updated: Partial<UserProfile>) => void;
+
+  // Auth errors
+  errorLogin: string | null;
+  errorRegister: string | null;
 
   // Orders
   orders: Order[];
@@ -153,6 +157,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const [orders, setOrders] = useState<Order[]>(INITIAL_ORDERS);
   const [reviews, setReviews] = useState<Record<string, Review[]>>(INITIAL_REVIEWS);
   const [mounted, setMounted] = useState(false);
+  const [errorLogin, setErrorLogin] = useState<string | null>(null);
+  const [errorRegister, setErrorRegister] = useState<string | null>(null);
 
   // Load from local storage
   useEffect(() => {
@@ -306,31 +312,93 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
   const isWishlisted = (productId: string) => wishlist.includes(productId);
 
   // Auth
-  const login = (email: string, pass: string) => {
-    setUser({
-      ...DEFAULT_USER,
-      email: email || DEFAULT_USER.email,
-    });
-    return true;
+  const login = async (email: string, pass: string): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, pass: pass }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setErrorLogin(data.error || 'Credenciales inválidas.');
+        return false;
+      }
+
+      const data = await res.json();
+      const userProfile: UserProfile = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        phone: data.user.phone ?? '',
+        city: data.user.city ?? '',
+        department: data.user.department ?? '',
+        favoriteRoast: 'Medio',
+        preferredBrewMethod: 'V60 (Hario)',
+        flavorPreferences: data.user.flavorPreferences ?? [],
+      };
+
+      setUser(userProfile);
+      try {
+        localStorage.setItem('monterojas_user', JSON.stringify(userProfile));
+      } catch (e) {}
+      setErrorLogin(null);
+      return true;
+    } catch (e) {
+      setErrorLogin('Error de conexión al iniciar sesión.');
+      return false;
+    }
   };
 
-  const register = (name: string, email: string, pass: string) => {
-    setUser({
-      id: `usr-${Date.now()}`,
-      name,
-      email,
-      phone: '+57 300 000 0000',
-      city: 'Medellín',
-      department: 'Antioquia',
-      favoriteRoast: 'Medio',
-      preferredBrewMethod: 'V60 (Hario)',
-      flavorPreferences: ['Panela', 'Caramelo'],
-    });
-    return true;
+  const register = async (
+    name: string,
+    email: string,
+    pass: string
+  ): Promise<boolean> => {
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password: pass }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json();
+        setErrorRegister(data.error || 'No se pudo crear la cuenta.');
+        return false;
+      }
+
+      const data = await res.json();
+      const userProfile: UserProfile = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        phone: '+57 300 000 0000',
+        city: 'Medellín',
+        department: 'Antioquia',
+        favoriteRoast: 'Medio',
+        preferredBrewMethod: 'V60 (Hario)',
+        flavorPreferences: ['Panela', 'Caramelo'],
+      };
+
+      setUser(userProfile);
+      try {
+        localStorage.setItem('monterojas_user', JSON.stringify(userProfile));
+      } catch (e) {}
+      setErrorRegister(null);
+      return true;
+    } catch (e) {
+      setErrorRegister('Error de conexión al registrar.');
+      return false;
+    }
   };
 
   const logout = () => {
     setUser(null);
+    try {
+      localStorage.removeItem('monterojas_user');
+    } catch (e) {}
   };
 
   const updateProfile = (updated: Partial<UserProfile>) => {
@@ -531,6 +599,8 @@ export const StoreProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         reviews,
         addReview,
         markReviewHelpful,
+        errorLogin,
+        errorRegister,
       }}
     >
       {children}

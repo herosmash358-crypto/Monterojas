@@ -108,16 +108,25 @@ node scripts/generate-placeholders.js
 - `npm run lint` OK, `npm run build` OK (55 páginas).
 - Smoke test: orden de prueba creada, stock descontado (45→44), página de pedidos renderiza con datos de DB.
 
-### Pendientes restantes (Fase 6+)
+### Pendientes restantes (Fase 7+)
 
 - `src/app/blog/page.tsx` y `blog/[slug]/page.tsx`: YA MIGRADOS (Fase 5 previa).
 - `src/app/cuenta/favoritos/page.tsx`: YA MIGRADO (Fase 5 previa).
+- `src/app/cuenta/direcciones/page.tsx`: YA MIGRADO a DB (Fase 5 previa).
 - `src/lib/store.tsx`: reseñas nuevas se persisten en DB vía API; el estado local sigue como fallback.
-- `src/app/cuenta/direcciones/page.tsx`: aún lee direcciones del store/localStorage (modelo Address ya existe en schema).
-- Autenticación real contra la DB (login/register actuales son simulados en localStorage).
 - Integración con pasarela de pago real (Wompi/MercadoPago) — ahora es simulada.
 
-## FASE 6-8 — PENDIENTE
+## FASE 6: AUTENTICACIÓN REAL CONTRA LA DB — HECHO ✅
+
+- `src/app/api/auth/login/route.ts`: POST valida email/password contra la DB.
+- `src/app/api/auth/register/route.ts`: POST crea usuario en la DB (rechaza email duplicado).
+- `src/app/login/page.tsx`: página de login/registro con modo toggle.
+- `src/lib/store.tsx`: `login` y `register` ahora son async y llaman a las APIs (con fallback a localStorage); agregados `errorLogin`/`errorRegister`.
+- `src/components/common/Header.tsx`: link de cuenta va a `/login` si no hay usuario, `/cuenta` si hay.
+- `npm run lint` OK, `npm run build` OK (59 páginas).
+- Smoke test: login con credenciales inválidas rechazado (400), página de login renderiza.
+
+## FASE 7-8 — PENDIENTE
 
 - Ver plan completo en el mensaje del usuario.
 
