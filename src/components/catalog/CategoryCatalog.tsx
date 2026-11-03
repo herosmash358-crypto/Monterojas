@@ -3,8 +3,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { SlidersHorizontal, X, SearchX } from 'lucide-react';
-import { Category } from '@/lib/types';
-import { PRODUCTS } from '@/lib/data/products';
+import { Category, Product } from '@/lib/types';
 import { ProductCard } from '@/components/product/ProductCard';
 import { FilterSidebar, FilterState } from '@/components/catalog/FilterSidebar';
 
@@ -33,9 +32,11 @@ const SORT_OPTIONS: { value: SortOption; label: string }[] = [
 
 interface CategoryCatalogProps {
   category: Category;
+  /** Productos de la categoría (suministrados desde el servidor / DB) */
+  products: Product[];
 }
 
-export function CategoryCatalog({ category }: CategoryCatalogProps) {
+export function CategoryCatalog({ category, products }: CategoryCatalogProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const subFromQuery = searchParams.get('sub') || '';
@@ -74,8 +75,8 @@ export function CategoryCatalog({ category }: CategoryCatalogProps) {
   };
 
   const categoryProducts = useMemo(
-    () => PRODUCTS.filter((p) => p.categorySlug === category.slug),
-    [category.slug]
+    () => products.filter((p) => p.categorySlug === category.slug),
+    [products, category.slug]
   );
 
   const filteredProducts = useMemo(() => {

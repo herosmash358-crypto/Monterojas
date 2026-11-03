@@ -3,20 +3,24 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-import { CATEGORIES } from '@/lib/data/categories';
-import { PRODUCTS } from '@/lib/data/products';
+import {
+  getCategoryBySlug,
+  getCategories,
+  getProductsByCategory,
+} from '@/lib/server/catalog';
 import { CategoryCatalog } from '@/components/catalog/CategoryCatalog';
 
 interface CategoryPageProps {
   params: { slug: string };
 }
 
-export function generateStaticParams() {
-  return CATEGORIES.map((c) => ({ slug: c.slug }));
+export async function generateStaticParams() {
+  const categories = await getCategories();
+  return categories.map((c) => ({ slug: c.slug }));
 }
 
-export function generateMetadata({ params }: CategoryPageProps) {
-  const category = CATEGORIES.find((c) => c.slug === params.slug);
+export async function generateMetadata({ params }: CategoryPageProps) {
+  const category = await getCategoryBySlug(params.slug);
   if (!category) return {};
   return {
     title: `${category.name} — Monterojas Café`,
@@ -24,13 +28,13 @@ export function generateMetadata({ params }: CategoryPageProps) {
   };
 }
 
-export default function CategoryPage({ params }: CategoryPageProps) {
-  const category = CATEGORIES.find((c) => c.slug === params.slug);
+export default async function CategoryPage({ params }: CategoryPageProps) {
+  const category = await getCategoryBySlug(params.slug);
   if (!category) {
     notFound();
   }
 
-  const categoryProducts = PRODUCTS.filter((p) => p.categorySlug === category.slug).length;
+  const categoryProducts = await getProductsByCategory(category.slug);
 
   return (
     <div className="pb-24">
@@ -64,7 +68,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
               {category.description}
             </p>
             <span className="inline-block text-[11px] font-bold uppercase tracking-widest text-ocre bg-espresso/70 backdrop-blur-sm px-3 py-1 rounded-full mt-1">
-              {categoryProducts} {categoryProducts === 1 ? 'producto' : 'productos'}
+              {categoryProducts.length} {categoryProducts.length === 1 ? 'producto' : 'productos'}
             </span>
           </div>
         </div>
@@ -92,7 +96,7 @@ export default function CategoryPage({ params }: CategoryPageProps) {
             </div>
           }
         >
-          <CategoryCatalog category={category} />
+          <CategoryCatalog category={category} products={categoryProducts} />
         </Suspense>
       </div>
     </div>

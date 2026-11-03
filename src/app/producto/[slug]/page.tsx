@@ -2,8 +2,12 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
-import { PRODUCTS } from '@/lib/data/products';
-import { CATEGORIES } from '@/lib/data/categories';
+import {
+  getCategoryBySlug,
+  getProductBySlug,
+  getProducts,
+  getProductsBySlugs,
+} from '@/lib/server/catalog';
 import { ProductDetail } from '@/components/product/ProductDetail';
 import { ProductReviews } from '@/components/product/ProductReviews';
 import { ProductCard } from '@/components/product/ProductCard';
@@ -12,12 +16,13 @@ interface ProductPageProps {
   params: { slug: string };
 }
 
-export function generateStaticParams() {
-  return PRODUCTS.map((p) => ({ slug: p.slug }));
+export async function generateStaticParams() {
+  const products = await getProducts();
+  return products.map((p) => ({ slug: p.slug }));
 }
 
-export function generateMetadata({ params }: ProductPageProps) {
-  const product = PRODUCTS.find((p) => p.slug === params.slug);
+export async function generateMetadata({ params }: ProductPageProps) {
+  const product = await getProductBySlug(params.slug);
   if (!product) return {};
   return {
     title: `${product.name} — Monterojas Café`,
@@ -25,17 +30,18 @@ export function generateMetadata({ params }: ProductPageProps) {
   };
 }
 
-export default function ProductPage({ params }: ProductPageProps) {
-  const product = PRODUCTS.find((p) => p.slug === params.slug);
+export default async function ProductPage({ params }: ProductPageProps) {
+  const product = await getProductBySlug(params.slug);
   if (!product) {
     notFound();
   }
 
-  const category = CATEGORIES.find((c) => c.slug === product.categorySlug);
-  const relatedProducts = product.relatedProductSlugs
-    .map((slug) => PRODUCTS.find((p) => p.slug === slug))
-    .filter((p): p is (typeof PRODUCTS)[number] => Boolean(p))
-    .slice(0, 4);
+  const [category, relatedProducts] = await Promise.all([
+    product.categorySlug ? getCategoryBySlug(product.categorySlug) : Promise.resolve(null),
+    getProductsBySlugs(product.relatedProductSlugs),
+  ]);
+
+  const related = relatedProducts.slice(0, 4);
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 space-y-16 pb-24">
@@ -62,7 +68,7 @@ export default function ProductPage({ params }: ProductPageProps) {
       <ProductReviews product={product} />
 
       {/* Related products */}
-      {relatedProducts.length > 0 && (
+      {related.length > 0 && (
         <section className="space-y-6">
           <div className="flex items-center justify-between">
             <h2 className="font-serif text-2xl font-bold text-espresso">
@@ -78,8 +84,8 @@ export default function ProductPage({ params }: ProductPageProps) {
             )}
           </div>
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 lg:gap-6">
-            {relatedProducts.map((related) => (
-              <ProductCard key={related.id} product={related} />
+            {related.map((relatedProduct) => (
+              <ProductCard key={relatedProduct.id} product={relatedProduct} />
             ))}
           </div>
         </section>

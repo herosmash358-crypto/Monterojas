@@ -63,21 +63,28 @@ node scripts/generate-placeholders.js
 
 ## FASE 2: DATOS Y CATÁLOGO — HECHO ✅
 
-- `prisma/seed.js` completado y ejecutado: 24 productos, 7 categorías, 3 cupones (MONTEROJAS10, BIENVENIDO, ENVIOFREE), 72 imágenes locales (3 por producto, primera `isPrimary`), 3 posts de blog, usuario de prueba (`carlos@monterojas.co` / pass `password123`) y 4 usuarios de reseñas.
-- Reseñas: 132 en total, entre 3 y 8 por producto, rotando usuarios para realismo.
-- `package.json`: scripts `db:push`, `db:generate`, `db:seed` y config `prisma.seed`.
-- Verificación con `scripts/check-db.js` + spot-check temporales: conteos y relaciones consistentes. `npm run build` OK (51 páginas).
+- `prisma/seed.js` inicial (24 productos) reemplazado por `prisma/seed.ts` en Fase 3: siembra desde el catálogo enriquecido de `src/lib/data` (26 productos, 7 categorías) para que los slugs de DB y frontend coincidan exactamente (`cafes-especiales-microlotes`, `capsulas-monodosis`, etc.).
+- `package.json`: scripts `db:push`, `db:generate`, `db:seed`; config `prisma.seed` → `tsx prisma/seed.ts`; `tsx` como devDependency.
+- `prisma/schema.prisma`: extendido con campos UI (`tagline`, `story`, `department`, `producer`, `subcategory`, `availableGrinds`/`faqs`/`relatedProductSlugs` JSON, `originalPrice`, `weightLabel`, `dateLabel`, etc.).
+- DB verificada: 26 productos, 81 reseñas (mín. 3 por producto, reales + sintéticas de comunidad), 22 usuarios, 7 categorías, 3 cupones, 4 posts de blog.
 - Comandos: `npm run db:push` → `npm run db:seed`.
 
-### Nota para Fase 3 (slugs divergentes)
+## FASE 3: CONECTAR FRONTEND A LA DB — HECHO ✅
 
-- Seed/estático: categorías `cafes-especiales` y `capsulas-y-monodosis`.
-- Catálogo frontend (`lib/data/categories.ts`): `cafes-especiales-microlotes` y `capsulas-monodosis`.
-- Decisión pendiente al conectar frontend ↔ DB: unificar slugs (fuente de verdad) o mapear en la capa de datos. El mega-menú enlaza `/categorias/cafes-especiales-microlotes`, que no existe en la DB del seed.
+- `src/lib/server/catalog.ts`: capa de datos server-only con adaptadores DB→UI (`mapCategory`, `mapReview`, `mapProduct`), caché `categorySlugCache`, y funciones `getCategories`, `getCategoryBySlug`, `getProducts`, `getProductsByCategory`, `getProductBySlug`, `getReviewsByProduct`, `getProductsBySlugs`.
+- API routes dinámicas: `/api/categories`, `/api/products`, `/api/products/[slug]` (`dynamic = 'force-dynamic'`).
+- `src/app/producto/[slug]/page.tsx`: rewirada a `getProductBySlug` + `generateStaticParams` desde DB + `getProductsBySlugs` para relacionados.
+- `src/app/categorias/[slug]/page.tsx`: rewirada a `getCategoryBySlug` + `getProductsByCategory`; `CategoryCatalog` recibe prop `products` (ya no importa `PRODUCTS` estático).
+- `npm run lint` OK, `npm run build` OK: 51 páginas (26 productos + 7 categorías SSG, 3 APIs dinámicas).
+- Smoke test en servidor de producción: categorías (7), producto detalle, fichas de categoría y 404 de slug inexistente — todos correctos.
 
-## FASE 3-8 — PENDIENTE
+### Slugs (resueltos)
 
-- Fase 3 sugerida: APIs/rutas usando el Prisma Client (`src/lib/prisma.ts` singleton) y conectar páginas del catálogo a la DB, resolviendo los slugs divergentes (nota arriba).
+- La fuente de verdad es el catálogo estático de `src/lib/data`; la DB se siembra desde él, por tanto los slugs coinciden y el mega-menú enlaza rutas existentes.
+
+## FASE 4-8 — PENDIENTE
+
+- Fase 4 sugerida: migrar Home, Buscar, Header, store de reseñas y demás lecturas estáticas (`src/app/page.tsx`, `buscar/page.tsx`, `Header.tsx`, `store.tsx`) a la capa `catalog.ts` / DB para usar `reviewCount` real. Registrado en `PROGRESO.md` como host fino conocido.
 - Ver plan completo en el mensaje del usuario.
 
 ## Todo en condiciones (pre-Fase 2) ✅

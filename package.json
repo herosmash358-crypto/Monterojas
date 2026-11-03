@@ -12,7 +12,7 @@
     "db:seed": "prisma db seed"
   },
   "prisma": {
-    "seed": "node prisma/seed.js"
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@next/swc-win32-x64-msvc": "^16.4.3",
@@ -35,6 +35,7 @@
     "postcss": "^8",
     "prisma": "^5.22.0",
     "tailwindcss": "^3.4.1",
+    "tsx": "^4.23.15",
     "typescript": "^5"
   }
 }
