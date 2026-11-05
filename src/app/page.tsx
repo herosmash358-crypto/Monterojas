@@ -9,7 +9,8 @@ import {
   CheckCircle2,
   MapPin,
   Coffee,
-  HeartHandshake,
+  HeartHandshake,  cd /d "C:\Users\heros\Desktop\Monterojas"
+  npm run dev
   BookOpen,
 } from 'lucide-react';
 import { ProductCard } from '@/components/product/ProductCard';
