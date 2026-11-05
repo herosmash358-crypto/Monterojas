@@ -58,7 +58,7 @@ export async function POST(request: NextRequest) {
       ? JSON.parse(user.flavorPreferences)
       : [];
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       user: {
         id: user.id,
         name: user.name,
@@ -71,6 +71,17 @@ export async function POST(request: NextRequest) {
         flavorPreferences: flavorPrefs,
       },
     });
+
+    // Establecer cookie de sesión para protección de rutas admin
+    response.cookies.set('monterojas_auth', user.id, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 días
+    });
+
+    return response;
   } catch (error) {
     console.error('POST /api/auth/login:', error);
     return NextResponse.json(

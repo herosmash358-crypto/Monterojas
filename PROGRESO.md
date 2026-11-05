@@ -108,13 +108,22 @@ node scripts/generate-placeholders.js
 - `npm run lint` OK, `npm run build` OK (55 páginas).
 - Smoke test: orden de prueba creada, stock descontado (45→44), página de pedidos renderiza con datos de DB.
 
-### Pendientes restantes (Fase 7+)
+### Pendientes restantes (Fase 8+)
 
-- `src/app/blog/page.tsx` y `blog/[slug]/page.tsx`: YA MIGRADOS (Fase 5 previa).
-- `src/app/cuenta/favoritos/page.tsx`: YA MIGRADO (Fase 5 previa).
-- `src/app/cuenta/direcciones/page.tsx`: YA MIGRADO a DB (Fase 5 previa).
-- `src/lib/store.tsx`: reseñas nuevas se persisten en DB vía API; el estado local sigue como fallback.
-- Integración con pasarela de pago real (Wompi/MercadoPago) — ahora es simulada.
+- Integración con pasarela de pago real (Wompi/MercadoPago) — ahora es simulada en checkout.
+- Página de perfil de cuenta con datos reales de la DB.
+- Posible: exportación de reportes, gestión de cupones, gestión de reseñas.
+
+## FASE 7: PANEL DE ADMINISTRACIÓN — HECHO ✅
+
+- `src/middleware.ts`: protege rutas `/admin` (requiere cookie `monterojas_auth`).
+- `src/app/api/auth/me/route.ts`: GET devuelve usuario desde cookie de sesión.
+- `src/app/api/auth/login/route.ts`: establece cookie de sesión tras login.
+- `src/lib/server/admin.ts`: capa server-only con `getAdminStats`, `getAdminProducts`, `createAdminProduct`, `updateAdminProduct`, `deleteAdminProduct`, `getAdminCategories`, `createAdminCategory`, `updateAdminCategory`, `deleteAdminCategory`, `getAdminOrders`, `updateAdminOrderStatus`, `getAdminUsers`, `updateAdminUserRole`.
+- API routes admin: `/api/admin/products`, `/api/admin/products/[id]`, `/api/admin/categories`, `/api/admin/categories/[id]`, `/api/admin/orders`, `/api/admin/orders/[id]`, `/api/admin/users`, `/api/admin/users/[id]`, `/api/admin/stats`.
+- Páginas admin: `/admin` (dashboard con estadísticas), `/admin/products` (CRUD productos), `/admin/categories` (CRUD categorías), `/admin/orders` (cambiar estado), `/admin/users` (cambiar rol), `/admin/layout.tsx` (layout con sidebar y protección).
+- `prisma/seed.ts`: agregado usuario admin (`admin@monterojas.co` / `admin123`, rol ADMIN).
+- `npm run lint` OK, `npm run build` OK (62 páginas incl. admin).
 
 ## FASE 6: AUTENTICACIÓN REAL CONTRA LA DB — HECHO ✅
 
@@ -126,7 +135,7 @@ node scripts/generate-placeholders.js
 - `npm run lint` OK, `npm run build` OK (59 páginas).
 - Smoke test: login con credenciales inválidas rechazado (400), página de login renderiza.
 
-## FASE 7-8 — PENDIENTE
+## FASE 8-9 — PENDIENTE
 
 - Ver plan completo en el mensaje del usuario.
 

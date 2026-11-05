@@ -65,6 +65,19 @@ async function main() {
   });
   console.log('✓ Usuario de prueba creado (carlos@monterojas.co).');
 
+  // 2b. Usuario administrador para el panel admin
+  await prisma.user.create({
+    data: {
+      id: 'usr-admin-1',
+      name: 'Administrador Monterojas',
+      email: 'admin@monterojas.co',
+      password: 'admin123',
+      role: 'ADMIN',
+      flavorPreferences: JSON.stringify([]),
+    },
+  });
+  console.log('✓ Usuario administrador creado (admin@monterojas.co / admin123).');
+
   // 3. Usuarios para las reseñas existentes (uno por nombre único)
   const reviewerUsers = new Map<string, string>();
   const reviewerCounter = new Map<string, number>();
