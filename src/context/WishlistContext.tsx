@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useContext,
   useReducer,
   useEffect,
   useCallback,
@@ -39,6 +40,18 @@ export interface WishlistContextValue extends WishlistState {
 
 export const WishlistContext = createContext<WishlistContextValue | null>(null);
 WishlistContext.displayName = 'WishlistContext';
+
+/* ------------------------------------------------------------------ */
+/*  Hook de uso de la lista de deseos                                   */
+/* ------------------------------------------------------------------ */
+
+export function useWishlist() {
+  const context = useContext(WishlistContext);
+  if (!context) {
+    throw new Error('useWishlist must be used within a WishlistProvider');
+  }
+  return context;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Constantes                                                         */

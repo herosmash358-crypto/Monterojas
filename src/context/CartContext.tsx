@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useContext,
   useReducer,
   useEffect,
   useCallback,
@@ -93,6 +94,18 @@ export interface CartContextValue extends CartState, CartCalculations {
 
 export const CartContext = createContext<CartContextValue | null>(null);
 CartContext.displayName = 'CartContext';
+
+/* ------------------------------------------------------------------ */
+/*  Hook de uso del carrito                                             */
+/* ------------------------------------------------------------------ */
+
+export function useCart() {
+  const context = useContext(CartContext);
+  if (!context) {
+    throw new Error('useCart must be used within a CartProvider');
+  }
+  return context;
+}
 
 /* ------------------------------------------------------------------ */
 /*  Constantes                                                         */

@@ -7,10 +7,11 @@ import { Logo } from './Logo';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { Badge } from '@/components/ui/Badge';
+import { Spinner } from '@/components/ui/Spinner';
 import { CartContext, useCart } from '@/context/CartContext';
 import { WishlistContext, useWishlist } from '@/context/WishlistContext';
 import { useSearch } from '@/hooks/useSearch';
-import { CATEGORIES } from '@/lib/constants';
+import { CATEGORIES } from '@/lib/data/categories';
 
 /* ------------------------------------------------------------------ */
 /*  Categorías del mega-menú (estáticas hasta la Fase 2: seed/DB)     */
