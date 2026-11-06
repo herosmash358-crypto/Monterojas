@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Mail, CheckCircle2, ShieldCheck, Truck, RefreshCw, HeartHandshake } from 'lucide-react';
 import { Logo } from './Logo';
@@ -8,6 +8,11 @@ import { Logo } from './Logo';
 export const Footer: React.FC = () => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSent, setNewsletterSent] = useState(false);
+  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
+
+  useEffect(() => {
+    setCurrentYear(new Date().getFullYear());
+  }, []);
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -230,7 +235,7 @@ export const Footer: React.FC = () => {
 
         {/* Bottom bar with payment badges and copyright */}
         <div className="mt-12 pt-8 border-t border-bosque/40 flex flex-col md:flex-row items-center justify-between gap-4 text-xs text-salvia">
-          <p>© {new Date().getFullYear()} Monterojas Café de Colombia SAS. Todos los derechos reservados.</p>
+          <p>© {currentYear} Monterojas Café de Colombia SAS. Todos los derechos reservados.</p>
           
           {/* Simulated Payment Methods Badges */}
           <div className="flex items-center gap-2 flex-wrap">
