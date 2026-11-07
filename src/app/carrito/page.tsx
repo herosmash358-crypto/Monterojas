@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import {
@@ -37,6 +37,11 @@ export default function CartPage() {
 
   const [couponInput, setCouponInput] = useState('');
   const [couponMsg, setCouponMsg] = useState<{ text: string; success: boolean } | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   const handleApply = (e: React.FormEvent) => {
     e.preventDefault();
@@ -114,7 +119,7 @@ export default function CartPage() {
         <div className="w-full h-2.5 bg-crema rounded-full overflow-hidden">
           <div
             className="h-full bg-bosque transition-all duration-500 rounded-full"
-            style={{ width: `${freeShippingProgress}%` }}
+            style={hasMounted ? { width: `${freeShippingProgress}%` } : undefined}
           />
         </div>
       </div>

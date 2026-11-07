@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { X, Trash2, Plus, Minus, ShoppingBag, ArrowRight, Truck, Tag, CheckCircle2 } from 'lucide-react';
@@ -26,6 +26,11 @@ export const CartDrawer: React.FC = () => {
 
   const [couponInput, setCouponInput] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ text: string; success: boolean } | null>(null);
+  const [hasMounted, setHasMounted] = useState(false);
+
+  useEffect(() => {
+    setHasMounted(true);
+  }, []);
 
   if (!isCartOpen) return null;
 
@@ -87,7 +92,7 @@ export const CartDrawer: React.FC = () => {
             <div className="w-full h-2 bg-crema rounded-full overflow-hidden">
               <div
                 className="h-full bg-bosque transition-all duration-500 rounded-full"
-                style={{ width: `${freeShippingProgress}%` }}
+                style={hasMounted ? { width: `${freeShippingProgress}%` } : undefined}
               />
             </div>
           </div>
