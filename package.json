@@ -15,7 +15,6 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@next/swc-win32-x64-msvc": "^16.4.3",
     "@prisma/client": "^5.22.0",
     "@types/canvas-confetti": "^1.9.0",
     "canvas-confetti": "^1.9.4",
@@ -37,5 +36,8 @@
     "tailwindcss": "^3.4.1",
     "tsx": "^4.23.15",
     "typescript": "^5"
+  },
+  "optionalDependencies": {
+    "@next/swc-win32-x64-msvc": "^16.4.3"
   }
 }
