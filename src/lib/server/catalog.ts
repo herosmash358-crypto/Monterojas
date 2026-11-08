@@ -2,6 +2,8 @@
 // Monterojas - Capa de datos del catálogo (server-only)
 // Consultas Prisma + adaptadores hacia los tipos que consume la UI
 // (src/lib/types). Solo debe importarse desde Server Components / API routes.
+// Adaptado para MongoDB: sin @relation, las asociaciones se resuelven por ID
+// en consultas por lotes para evitar N+1.
 // =============================================================================
 
 import { prisma } from '@/lib/prisma';
@@ -17,6 +19,9 @@ import type {
   Prisma,
   Product as ProductRow,
   Review as ReviewRow,
+  ProductVariant as ProductVariantRow,
+  ProductImage as ProductImageRow,
+  User as UserRow,
 } from '@prisma/client';
 
 /* ------------------------------------------------------------------ */
@@ -50,7 +55,7 @@ function mapCategory(row: CategoryRow): Category {
   };
 }
 
-function mapReview(row: ReviewRow & { user: { name: string } | null }): Review {
+function mapReview(row: ReviewRow, userName: string): Review {
   const date = row.dateLabel ?? new Intl.DateTimeFormat('es-CO', {
     day: 'numeric',
     month: 'long',
@@ -61,7 +66,7 @@ function mapReview(row: ReviewRow & { user: { name: string } | null }): Review {
   return {
     id: row.id,
     productId: row.productId,
-    userName: row.user?.name ?? 'Cliente Monterojas',
+    userName,
     rating: row.rating,
     date: title,
     title: row.title ?? '',
@@ -72,21 +77,20 @@ function mapReview(row: ReviewRow & { user: { name: string } | null }): Review {
   };
 }
 
-type ProductRowWithRelations = ProductRow & {
-  variants: { id: string; weight: number | null; weightLabel: string; grind: string; price: number; stock: number; sku: string }[];
-  images: { url: string; displayOrder: number }[];
-  reviews: (ReviewRow & { user: { name: string } | null })[];
+type ProductWithJoins = {
+  product: ProductRow;
+  variants: ProductVariantRow[];
+  images: ProductImageRow[];
 };
 
-function mapProduct(row: ProductRowWithRelations): Product {
-  const rating =
-    row.reviews.length > 0
-      ? Math.round(
-          (row.reviews.reduce((acc, r) => acc + r.rating, 0) / row.reviews.length) * 10
-        ) / 10
-      : 0;
-
-  const sortedImages = [...row.images].sort((a, b) => a.displayOrder - b.displayOrder);
+function mapProduct(
+  row: ProductRow,
+  variants: ProductVariantRow[],
+  images: ProductImageRow[],
+  rating: number,
+  reviewCount: number
+): Product {
+  const sortedImages = [...images].sort((a, b) => a.displayOrder - b.displayOrder);
 
   return {
     id: row.id,
@@ -94,18 +98,16 @@ function mapProduct(row: ProductRowWithRelations): Product {
     name: row.name,
     tagline: row.tagline ?? row.shortDescription ?? '',
     sku: row.sku,
-    categorySlug: row.categoryId
-      ? (categorySlugCache.get(row.categoryId) ?? '')
-      : '',
+    categorySlug: row.categoryId ? (categorySlugCache.get(row.categoryId) ?? '') : '',
     subcategory: row.subcategory ?? undefined,
-    price: row.variants[0]?.price ?? 0,
+    price: variants[0]?.price ?? 0,
     originalPrice: row.originalPrice ?? undefined,
     rating,
-    reviewCount: row.reviews.length,
+    reviewCount,
     isNew: row.isNew,
     isBestseller: row.bestSeller,
     featured: row.featured,
-    inStock: row.variants.some((v) => v.stock > 0),
+    inStock: variants.some((v) => v.stock > 0),
     origin: row.origin ?? undefined,
     department: row.department ?? undefined,
     farm: row.farm ?? undefined,
@@ -128,7 +130,7 @@ function mapProduct(row: ProductRowWithRelations): Product {
     description: row.description,
     story: row.story ?? '',
     images: sortedImages.map((img) => img.url),
-    variants: row.variants.map((v) => ({
+    variants: variants.map((v) => ({
       id: v.id,
       weight: v.weightLabel,
       price: v.price,
@@ -156,23 +158,20 @@ async function warmCategorySlugCache(): Promise<void> {
 /*  Consultas públicas (server-only)                                   */
 /* ------------------------------------------------------------------ */
 
-const productInclude = {
-  variants: true,
-  images: true,
-  reviews: {
-    where: { status: 'approved' },
-    orderBy: { createdAt: 'desc' as const },
-    include: { user: { select: { name: true } } },
-  },
-} satisfies Prisma.ProductInclude;
-
 /** Todas las categorías con productos activos */
 export async function getCategories(): Promise<Category[]> {
-  const rows = await prisma.category.findMany({
-    orderBy: { displayOrder: 'asc' },
-    where: { products: { some: { active: true } } },
+  await warmCategorySlugCache();
+  const products = await prisma.product.findMany({
+    where: { active: true },
+    select: { categoryId: true },
   });
-  return rows.map(mapCategory);
+  const activeCategoryIds = new Set(
+    products.map((p) => p.categoryId).filter((id): id is string => Boolean(id))
+  );
+  const allCategories = await prisma.category.findMany({
+    orderBy: { displayOrder: 'asc' },
+  });
+  return allCategories.filter((c) => activeCategoryIds.has(c.id)).map(mapCategory);
 }
 
 /** Una categoría por slug (o null) */
@@ -184,12 +183,71 @@ export async function getCategoryBySlug(slug: string): Promise<Category | null> 
 /** Todos los productos activos, con variantes/imágenes/reseñas */
 export async function getProducts(): Promise<Product[]> {
   await warmCategorySlugCache();
-  const rows = await prisma.product.findMany({
+  const productRows = await prisma.product.findMany({
     where: { active: true },
-    include: productInclude,
     orderBy: { name: 'asc' },
   });
-  return rows.map((row) => mapProduct(row as ProductRowWithRelations));
+  if (productRows.length === 0) return [];
+
+  const productIds = productRows.map((p) => p.id);
+
+  // Variants por lote
+  const variants = await prisma.productVariant.findMany({
+    where: { productId: { in: productIds } },
+  });
+  const variantsByProduct = new Map<string, ProductVariantRow[]>();
+  for (const v of variants) {
+    const arr = variantsByProduct.get(v.productId) ?? [];
+    arr.push(v);
+    variantsByProduct.set(v.productId, arr);
+  }
+
+  // Images por lote
+  const images = await prisma.productImage.findMany({
+    where: { productId: { in: productIds } },
+  });
+  const imagesByProduct = new Map<string, ProductImageRow[]>();
+  for (const img of images) {
+    const arr = imagesByProduct.get(img.productId) ?? [];
+    arr.push(img);
+    imagesByProduct.set(img.productId, arr);
+  }
+
+  // Reviews aprobadas por lote
+  const reviews = await prisma.review.findMany({
+    where: { productId: { in: productIds }, status: 'approved' },
+  });
+  const userIds = new Set(reviews.map((r) => r.userId));
+  const users = await prisma.user.findMany({
+    where: { id: { in: Array.from(userIds) } },
+    select: { id: true, name: true },
+  });
+  const userNameById = new Map(users.map((u) => [u.id, u.name ?? 'Cliente Monterojas']));
+
+  // Agrupar reviews por producto y calcular rating
+  const reviewsByProduct = new Map<string, ReviewRow[]>();
+  for (const r of reviews) {
+    const arr = reviewsByProduct.get(r.productId) ?? [];
+    arr.push(r);
+    reviewsByProduct.set(r.productId, arr);
+  }
+
+  const ratingByProduct = new Map<string, { rating: number; count: number }>();
+  reviewsByProduct.forEach((revs, pid) => {
+    const avg = revs.reduce((acc, r) => acc + r.rating, 0) / revs.length;
+    ratingByProduct.set(pid, { rating: Math.round(avg * 10) / 10, count: revs.length });
+  });
+
+  return productRows.map((row) => {
+    const stats = ratingByProduct.get(row.id) ?? { rating: 0, count: 0 };
+    return mapProduct(
+      row,
+      variantsByProduct.get(row.id) ?? [],
+      imagesByProduct.get(row.id) ?? [],
+      stats.rating,
+      stats.count
+    );
+  });
 }
 
 /** Productos de una categoría (con filtro opcional de subcategoría) */
@@ -206,11 +264,30 @@ export async function getProductsByCategory(
 /** Un producto completo por slug (con reseñas), para la ficha de detalle */
 export async function getProductBySlug(slug: string): Promise<Product | null> {
   await warmCategorySlugCache();
-  const row = await prisma.product.findUnique({
-    where: { slug },
-    include: productInclude,
+  const row = await prisma.product.findUnique({ where: { slug } });
+  if (!row) return null;
+
+  const [variants, images, reviews] = await Promise.all([
+    prisma.productVariant.findMany({ where: { productId: row.id } }),
+    prisma.productImage.findMany({ where: { productId: row.id } }),
+    prisma.review.findMany({
+      where: { productId: row.id, status: 'approved' },
+    }),
+  ]);
+
+  const userIds = new Set(reviews.map((r) => r.userId));
+  const users = await prisma.user.findMany({
+    where: { id: { in: Array.from(userIds) } },
+    select: { id: true, name: true },
   });
-  return row ? mapProduct(row as ProductRowWithRelations) : null;
+  const userNameById = new Map(users.map((u) => [u.id, u.name ?? 'Cliente Monterojas']));
+
+  const rating =
+    reviews.length > 0
+      ? Math.round((reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length) * 10) / 10
+      : 0;
+
+  return mapProduct(row, variants, images, rating, reviews.length);
 }
 
 /** Reseñas persistidas de un producto (para secciones externas) */
@@ -218,9 +295,15 @@ export async function getReviewsByProduct(productId: string): Promise<Review[]> 
   const rows = await prisma.review.findMany({
     where: { productId, status: 'approved' },
     orderBy: { createdAt: 'desc' },
-    include: { user: { select: { name: true } } },
   });
-  return rows.map(mapReview);
+  const userIds = new Set(rows.map((r) => r.userId));
+  const users = await prisma.user.findMany({
+    where: { id: { in: Array.from(userIds) } },
+    select: { id: true, name: true },
+  });
+  const userNameById = new Map(users.map((u) => [u.id, u.name ?? 'Cliente Monterojas']));
+
+  return rows.map((row) => mapReview(row, userNameById.get(row.userId) ?? 'Cliente Monterojas'));
 }
 
 /** Productos relacionados de un producto (por lista de slugs) */

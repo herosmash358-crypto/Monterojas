@@ -1,5 +1,5 @@
 /**
- * Seed de la base de datos Monterojas.
+ * Seed de la base de datos Monterojas (MongoDB).
  * Fuente de verdad: el catálogo enriquecido de src/lib/data
  * (26 productos, 7 categorías con subcategorías, reseñas y blog).
  */
@@ -22,14 +22,14 @@ function parseWeight(weight: string): { weight: number | null; weightLabel: stri
 }
 
 async function main() {
-  console.log('🌱 Iniciando seed de la base de datos Monterojas (fase 3)...');
+  console.log('🌱 Iniciando seed de la base de datos Monterojas (MongoDB)...');
 
-  // 1. Limpiar datos existentes (orden FK)
+  // 1. Limpiar datos existentes (sin restricciones FK en MongoDB)
+  await prisma.wishlistItem.deleteMany();
+  await prisma.address.deleteMany();
   await prisma.orderItem.deleteMany();
   await prisma.order.deleteMany();
   await prisma.review.deleteMany();
-  await prisma.wishlistItem.deleteMany();
-  await prisma.address.deleteMany();
   await prisma.productImage.deleteMany();
   await prisma.productVariant.deleteMany();
   await prisma.product.deleteMany();
@@ -39,7 +39,8 @@ async function main() {
   await prisma.user.deleteMany();
 
   // 2. Usuario de prueba (cuenta con dirección predeterminada)
-  await prisma.user.create({
+  // Se crea el usuario primero, luego la dirección como documento separado
+  const userCarlos = await prisma.user.create({
     data: {
       id: 'usr-carlos-1',
       name: 'Carlos Alberto Gómez',
@@ -47,20 +48,19 @@ async function main() {
       password: 'password123',
       role: 'USER',
       flavorPreferences: JSON.stringify(['Panela', 'Caramelo', 'Jazmín', 'Cacao oscuro']),
-      addresses: {
-        create: [
-          {
-            label: 'Casa',
-            name: 'Carlos Alberto Gómez',
-            phone: '+57 310 495 8291',
-            street: 'Carrera 43A # 18 Sur - 125 Apto 502',
-            city: 'Medellín',
-            state: 'Antioquia',
-            zipCode: '050022',
-            isDefault: true,
-          },
-        ],
-      },
+    },
+  });
+  await prisma.address.create({
+    data: {
+      userId: userCarlos.id,
+      label: 'Casa',
+      name: 'Carlos Alberto Gómez',
+      phone: '+57 310 495 8291',
+      street: 'Carrera 43A # 18 Sur - 125 Apto 502',
+      city: 'Medellín',
+      state: 'Antioquia',
+      zipCode: '050022',
+      isDefault: true,
     },
   });
   console.log('✓ Usuario de prueba creado (carlos@monterojas.co).');
@@ -150,11 +150,11 @@ async function main() {
   });
   console.log('✓ Cupones creados (MONTEROJAS10, BIENVENIDO, ENVIOFREE).');
 
-  // 6. Productos con todas las variantes/imágenes del catálogo estático
+  // 6. Productos con variantes e imágenes (documentos separados, sin @relation anidada)
   for (const product of PRODUCTS) {
     const categoryId = CATEGORIES.find((c) => c.slug === product.categorySlug)?.id;
 
-    await prisma.product.create({
+    const createdProduct = await prisma.product.create({
       data: {
         id: product.id,
         name: product.name,
@@ -190,27 +190,37 @@ async function main() {
         isNew: product.isNew ?? false,
         active: product.inStock,
         categoryId: categoryId ?? null,
-        variants: {
-          create: product.variants.map((variant) => ({
-            id: variant.id,
-            weight: parseWeight(variant.weight).weight,
-            weightLabel: variant.weight,
-            grind: product.availableGrinds[0] ?? 'En grano',
-            price: variant.price,
-            stock: variant.stock,
-            sku: variant.sku,
-          })),
-        },
-        images: {
-          create: product.images.map((url, index) => ({
-            url,
-            alt: product.name,
-            displayOrder: index + 1,
-            isPrimary: index === 0,
-          })),
-        },
       },
     });
+
+    // Variantes como documentos separados con productId
+    for (const variant of product.variants) {
+      await prisma.productVariant.create({
+        data: {
+          id: variant.id,
+          productId: createdProduct.id,
+          weight: parseWeight(variant.weight).weight,
+          weightLabel: variant.weight,
+          grind: product.availableGrinds[0] ?? 'En grano',
+          price: variant.price,
+          stock: variant.stock,
+          sku: variant.sku,
+        },
+      });
+    }
+
+    // Imágenes como documentos separados con productId
+    for (let index = 0; index < product.images.length; index++) {
+      await prisma.productImage.create({
+        data: {
+          productId: createdProduct.id,
+          url: product.images[index],
+          alt: product.name,
+          displayOrder: index + 1,
+          isPrimary: index === 0,
+        },
+      });
+    }
   }
   console.log(`✓ ${PRODUCTS.length} productos creados (con variantes e imágenes).`);
 
@@ -239,7 +249,6 @@ async function main() {
   console.log(`✓ ${reviewCount} reseñas escritas del catálogo creado.`);
 
   // 7b. Reseñas sintéticas de comunidad: mínimo 3 por producto
-  // (offset por producto para no repetir siempre la misma muestra)
   const PRODUCT_REVIEW_SEED_OFFSETS = new Map(PRODUCTS.map((p, index) => [p.id, index * 3]));
   const SYNTHETIC_REVIEWS = [
     { rating: 5, title: 'Frescura inigualable y tostión perfecta', comment: 'La bolsa llegó con fecha de tostión reciente. En taza se siente exactamente la descripción de las notas de cata.', brewMethod: 'V60 (Hario)' },
@@ -293,7 +302,7 @@ async function main() {
   }
   console.log(`✓ ${BLOG_POSTS.length} posts de blog creados.`);
 
-  console.log('🎉 Seed (fase 3) completado exitosamente en SQLite dev.db.');
+  console.log('🎉 Seed (MongoDB) completado exitosamente.');
 }
 
 main()
