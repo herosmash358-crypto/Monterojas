@@ -34,7 +34,6 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
   const [activeCategoryTab, setActiveCategoryTab] = useState<string>(
     categoriesList[2]?.id ?? categoriesList[0]?.id ?? ''
   ); // Default: 3ra categoría (Cafés de Origen) o la primera disponible
-  const [scrolled, setScrolled] = useState(false);
   const [hasMounted, setHasMounted] = useState(false);
 
   useEffect(() => {
@@ -42,14 +41,6 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
   }, []);
 
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setScrolled(window.scrollY > 20);
-    };
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Close menus on route change
   useEffect(() => {

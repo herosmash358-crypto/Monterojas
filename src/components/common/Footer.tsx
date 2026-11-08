@@ -8,11 +8,7 @@ import { Logo } from './Logo';
 export const Footer: React.FC = () => {
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterSent, setNewsletterSent] = useState(false);
-  const [currentYear, setCurrentYear] = useState<number>(new Date().getFullYear());
-
-  useEffect(() => {
-    setCurrentYear(new Date().getFullYear());
-  }, []);
+  const currentYear = new Date().getFullYear();
 
   const handleNewsletterSubmit = (e: React.FormEvent) => {
     e.preventDefault();
