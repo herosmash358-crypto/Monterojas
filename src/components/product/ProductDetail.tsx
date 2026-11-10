@@ -61,7 +61,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product }) => {
     <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-14">
       {/* ============================ GALLERY ============================ */}
       <div className="space-y-4">
-        <div className="relative aspect-square rounded-craft overflow-hidden bg-crema border border-lino shadow-card">
+        <div className="relative aspect-video sm:aspect-square rounded-craft overflow-hidden bg-crema border border-lino shadow-card">
           <Image
             src={product.images[activeImage]}
             alt={product.name}
@@ -109,7 +109,7 @@ export const ProductDetail: React.FC<ProductDetailProps> = ({ product }) => {
                 key={i}
                 onClick={() => setActiveImage(i)}
                 className={cn(
-                  'relative w-20 h-20 rounded-xl overflow-hidden border-2 transition-all',
+                  'relative w-12 h-12 sm:w-20 sm:h-20 rounded-xl overflow-hidden border-2 transition-all',
                   activeImage === i ? 'border-ocre shadow-sm' : 'border-lino opacity-70 hover:opacity-100'
                 )}
                 aria-label={`Ver imagen ${i + 1}`}
