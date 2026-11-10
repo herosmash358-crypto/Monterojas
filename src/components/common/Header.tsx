@@ -124,7 +124,7 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
             {/* Cart Button with Ocre Badge */}
             <button
               onClick={openCart}
-              className="relative flex items-center gap-2 bg-ocre hover:bg-ocre-hover text-espresso font-semibold px-4 py-2.5 rounded-full shadow-sm hover:shadow-md transition-all text-xs sm:text-sm"
+              className="relative flex items-center gap-2 bg-ocre hover:bg-ocre-hover text-espresso font-semibold px-3 sm:px-4 py-2.5 rounded-full shadow-sm hover:shadow-md transition-all text-xs sm:text-sm shrink-0"
               aria-label="Ver carrito"
             >
               <ShoppingBag className="w-4 h-4" />
@@ -288,8 +288,8 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
 
       {/* Mobile Drawer Menu */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 bg-espresso/60 backdrop-blur-sm">
-          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-crema flex flex-col shadow-2xl p-6 overflow-y-auto">
+        <div className="lg:hidden fixed inset-0 z-[60] bg-espresso/70 backdrop-blur-sm">
+          <div className="fixed inset-y-0 left-0 max-w-xs w-full bg-crema flex flex-col shadow-2xl p-6 overflow-y-auto z-[61]">
             <div className="flex items-center justify-between pb-4 border-b border-lino">
               <Logo />
               <button
