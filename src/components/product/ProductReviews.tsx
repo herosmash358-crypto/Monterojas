@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ThumbsUp, CheckCircle2, MessageSquare, PenLine } from 'lucide-react';
 import { Product, Review } from '@/lib/types';
 import { StarRating } from '@/components/product/StarRating';
@@ -24,12 +24,6 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ product, reviews
   const [formComment, setFormComment] = useState('');
   const [formMethod, setFormMethod] = useState('');
   const [submitted, setSubmitted] = useState(false);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   // Distribution for the summary panel
   const distribution = useMemo(() => {
     const dist = [0, 0, 0, 0, 0];
@@ -106,7 +100,7 @@ export const ProductReviews: React.FC<ProductReviewsProps> = ({ product, reviews
                 <div className="flex-1 h-2 bg-lino/80 rounded-full overflow-hidden">
                   <div
                     className="h-full bg-ocre rounded-full transition-all duration-500"
-                    style={hasMounted ? { width: `${pct}%` } : undefined}
+                    style={{ width: `${pct}%` }}
                   />
                 </div>
                 <span className="w-8 text-tierra/60">{count}</span>

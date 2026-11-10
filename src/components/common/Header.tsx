@@ -34,12 +34,6 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
   const [activeCategoryTab, setActiveCategoryTab] = useState<string>(
     categoriesList[2]?.id ?? categoriesList[0]?.id ?? ''
   ); // Default: 3ra categoría (Cafés de Origen) o la primera disponible
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
-
   const totalCartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   // Close menus on route change
@@ -265,7 +259,7 @@ export const Header: React.FC<{ categories?: Category[] }> = ({ categories }) =>
             <div className="col-span-4 relative rounded-2xl overflow-hidden bg-espresso text-crema p-6 flex flex-col justify-end min-h-[280px]">
               <div
                 className="absolute inset-0 bg-cover bg-center opacity-40 mix-blend-overlay"
-                style={hasMounted ? { backgroundImage: `url(${activeCategory.bannerImage})` } : undefined}
+                style={{ backgroundImage: `url(${activeCategory.bannerImage})` }}
               />
               <div className="absolute inset-0 bg-gradient-to-t from-espresso via-espresso/60 to-transparent" />
               

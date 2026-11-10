@@ -57,11 +57,6 @@ export const Slider: React.FC<SliderProps> = ({
 
   // Valores internos sincronizados
   const [localValue, setLocalValue] = useState<[number, number]>(value);
-  const [hasMounted, setHasMounted] = useState(false);
-
-  useEffect(() => {
-    setHasMounted(true);
-  }, []);
 
   // Sincronizar prop → estado local
   useEffect(() => {
@@ -195,14 +190,7 @@ export const Slider: React.FC<SliderProps> = ({
         {/* Rango activo */}
         <div
           className="absolute top-0 h-full rounded-full bg-[#D49A2A]"
-          style={
-            hasMounted
-              ? {
-                  left: `${minPercent}%`,
-                  width: `${maxPercent - minPercent}%`,
-                }
-              : undefined
-          }
+          style={{ left: `${minPercent}%`, width: `${maxPercent - minPercent}%` }}
         />
 
         {/* Handle mínimo */}
@@ -232,9 +220,7 @@ export const Slider: React.FC<SliderProps> = ({
             'hover:shadow-lg hover:shadow-[#D49A2A]/30',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D49A2A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6EEE0]',
           )}
-          style={
-            hasMounted ? { left: `${minPercent}%` } : undefined
-          }
+          style={{ left: `${minPercent}%` }}
         />
 
         {/* Handle máximo */}
@@ -264,9 +250,7 @@ export const Slider: React.FC<SliderProps> = ({
             'hover:shadow-lg hover:shadow-[#D49A2A]/30',
             'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#D49A2A] focus-visible:ring-offset-2 focus-visible:ring-offset-[#F6EEE0]',
           )}
-          style={
-            hasMounted ? { left: `${maxPercent}%` } : undefined
-          }
+          style={{ left: `${maxPercent}%` }}
         />
       </div>
 
